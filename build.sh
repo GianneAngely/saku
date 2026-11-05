@@ -14,7 +14,8 @@ for f in Resources/*; do
   [[ "$f" == "Resources/Info.plist" ]] || cp -R "$f" "$app/Contents/Resources/"
 done
 cp docs/FEATURES.md "$app/Contents/Resources/"
-codesign --force --sign - "$app"
+# Ad hoc, but with a designated requirement that survives rebuilds, so macOS keeps the permissions it gave Saku.
+codesign --force --sign - --requirements '=designated => identifier "local.saku.app"' "$app"
 echo "built $PWD/$app"
 if [[ "${1:-}" == "--install" ]]; then
   rm -rf /Applications/Saku.app
