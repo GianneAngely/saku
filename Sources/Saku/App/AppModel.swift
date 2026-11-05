@@ -42,6 +42,9 @@ final class AppModel {
     let prefs: Prefs
     let notch = NotchState()
 
+    // Feature models (created in Features.install).
+    var music: MusicModel!
+
     @ObservationIgnored private var hudClear: DispatchWorkItem?
     @ObservationIgnored private var alertClear: DispatchWorkItem?
     @ObservationIgnored var commands = Commands()
@@ -119,8 +122,8 @@ final class AppModel {
     /// Priority: HUD, then features in order of urgency, then the chosen idle style.
     var liveActivity: LiveActivity {
         if let h = notch.hud { return .hud(h) }
-        for provider in liveProviders {
-            if let a = provider() { return a }
+        for entry in liveProviders {
+            if let a = entry.provider() { return a }
         }
         switch prefs.v.closedStyle {
         case "date": return .date
@@ -131,7 +134,13 @@ final class AppModel {
     }
 
     /// Features register closures that return a live activity while they have something to show.
-    @ObservationIgnored var liveProviders: [@MainActor () -> LiveActivity?] = []
+    /// Higher priority wins: timers 100, charging 90, music 50, meetings 40.
+    @ObservationIgnored private(set) var liveProviders: [(priority: Int, provider: @MainActor () -> LiveActivity?)] = []
+
+    func addLive(priority: Int, _ provider: @escaping @MainActor () -> LiveActivity?) {
+        liveProviders.append((priority, provider))
+        liveProviders.sort { $0.priority > $1.priority }
+    }
 
     var closedSize: CGSize {
         let g = notch.geo

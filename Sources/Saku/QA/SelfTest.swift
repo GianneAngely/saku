@@ -69,10 +69,10 @@ enum SelfTest {
         check(abs(tuned.notchW - (g.notchW + 10)) < 0.01 && tuned.notchH == g.notchH - 4, "fine-tuning offsets apply")
 
         // Live activity and closed size.
-        app.prefs.v.closedStyle = "auto"
+        app.prefs.v.closedStyle = "none"
         app.prefs.v.idleMark = "none"
         app.notch.hud = nil
-        check(app.liveActivity == .none, "idle notch has no wings")
+        check(app.liveActivity == .none, "plain style has no wings")
         check(app.closedSize.width == app.notch.geo.notchW, "plain closed notch is notch-sized")
         app.prefs.v.closedStyle = "date"
         check(app.liveActivity == .date, "date style")

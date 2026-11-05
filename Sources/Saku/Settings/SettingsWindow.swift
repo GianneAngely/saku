@@ -77,7 +77,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
     }
 
     /// Panes whose feature has landed. Feature branches add themselves here.
-    static let available: [SettingsPane] = [.general, .appearance, .tabs, .about]
+    static let available: [SettingsPane] = [.general, .appearance, .tabs, .music, .about]
 }
 
 @MainActor @Observable
@@ -168,6 +168,7 @@ struct PaneIcon: View {
 enum FeaturePanes {
     @ViewBuilder static func view(_ p: SettingsPane, app: AppModel) -> some View {
         switch p {
+        case .music: MusicPane(app: app)
         default: Text(p.title).foregroundStyle(.secondary)
         }
     }

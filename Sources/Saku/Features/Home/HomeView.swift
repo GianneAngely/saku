@@ -18,9 +18,13 @@ struct HomeView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            TodayCard(app: app)
-                .frame(width: 210)
-            GlanceColumn(app: app)
+            if app.prefs.v.musicOnHome, app.music != nil {
+                MusicCard(app: app)
+                TodayCard(app: app).frame(width: 200)
+            } else {
+                TodayCard(app: app).frame(width: 210)
+                GlanceColumn(app: app)
+            }
         }
     }
 }
