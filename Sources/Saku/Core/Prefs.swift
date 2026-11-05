@@ -40,6 +40,16 @@ struct PrefsData: Codable, Equatable {
     var musicPreferredPlayer = "auto"       // auto, spotify, music, browser
     var musicOnHome = true
 
+    // Timers
+    var pomoFocus = 25.0                    // minutes
+    var pomoShort = 5.0
+    var pomoLong = 15.0
+    var pomoLongEvery = 4
+    var pomoAutoStart = false
+    var timerSound = true
+    var timerVolume = 0.7
+    var timerAlert = true
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]

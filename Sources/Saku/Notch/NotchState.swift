@@ -48,7 +48,7 @@ enum Tab: String, CaseIterable, Identifiable, Codable {
     }
 
     /// Tabs whose feature has landed. Feature branches add themselves here.
-    static let available: [Tab] = [.home]
+    static let available: [Tab] = [.home, .timers]
 }
 
 enum NotchMode: Equatable {
@@ -93,7 +93,7 @@ enum LiveActivity: Equatable {
     case date
     case hud(NotchHUD)
     case music(artwork: NSImage?, playing: Bool, tint: Color)
-    case timer(icon: String, text: String, progress: Double, tint: Color)
+    case timer(TimerDisplay)
     case charging(level: Int, charging: Bool)
     case meeting(text: String)
 
@@ -105,10 +105,44 @@ enum LiveActivity: Equatable {
         case .date: 62
         case .hud(let h): min(150, Double(h.text.count) * 6.6 + 18)
         case .music: 36
-        case .timer: 54
+        case .timer(let d): d.countsUp ? 60 : (d.total >= 3600 ? 66 : 54)
         case .charging: 50
         case .meeting: 64
         }
+    }
+}
+
+/// A running or paused timer as the closed notch draws it. Values come from the clock, so the notch only
+/// needs to redraw once a second (TimelineView) instead of the model publishing every tick.
+struct TimerDisplay: Equatable {
+    var icon: String
+    var tint: Color
+    var countsUp = false
+    /// Running: when it ends (counting down) or when it virtually started (counting up). Nil while paused.
+    var anchor: Date?
+    /// Paused value: seconds left (down) or seconds elapsed (up).
+    var frozen: Double = 0
+    /// Full length, for the ring. 0 when counting up.
+    var total: Double = 0
+
+    var running: Bool { anchor != nil }
+
+    func value(at now: Date) -> Double {
+        guard let a = anchor else { return frozen }
+        return countsUp ? now.timeIntervalSince(a) : max(0, a.timeIntervalSince(now))
+    }
+
+    func progress(at now: Date) -> Double {
+        if countsUp { return value(at: now).truncatingRemainder(dividingBy: 60) / 60 }
+        return total > 0 ? min(1, max(0, 1 - value(at: now) / total)) : 0
+    }
+
+    func text(at now: Date) -> String { Self.clock(value(at: now), roundUp: !countsUp) }
+
+    /// 4:05, 24:13, 1:02:09. Countdowns round up so "0:00" only shows at the very end.
+    static func clock(_ seconds: Double, roundUp: Bool) -> String {
+        let t = max(0, Int(roundUp ? seconds.rounded(.up) : seconds.rounded(.down)))
+        return t >= 3600 ? String(format: "%d:%02d:%02d", t / 3600, t / 60 % 60, t % 60) : String(format: "%d:%02d", t / 60, t % 60)
     }
 }
 

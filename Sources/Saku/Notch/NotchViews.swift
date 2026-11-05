@@ -116,13 +116,11 @@ struct ClosedWings: View {
             Image(systemName: h.icon).font(.system(size: 12, weight: .bold)).foregroundStyle(h.tint)
         case .music(let art, _, let tint):
             AlbumArt(image: art, size: 22, radius: 6, tint: tint)
-        case .timer(let icon, _, let progress, let tint):
-            ZStack {
-                Circle().stroke(tint.opacity(0.25), lineWidth: 2.5)
-                Circle().trim(from: 0, to: progress).stroke(tint, style: StrokeStyle(lineWidth: 2.5, lineCap: .round)).rotationEffect(.degrees(-90))
-                Image(systemName: icon).font(.system(size: 8, weight: .bold)).foregroundStyle(tint)
+        case .timer(let d):
+            TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                TimerRing(progress: d.progress(at: ctx.date), tint: d.tint, icon: d.running ? d.icon : "pause.fill", line: 2.5)
+                    .frame(width: 19, height: 19)
             }
-            .frame(width: 19, height: 19)
         case .charging(_, let charging):
             Image(systemName: charging ? "bolt.fill" : "powerplug.fill").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.mint)
         case .meeting:
@@ -139,8 +137,10 @@ struct ClosedWings: View {
             Text(h.text).font(Theme.font(11.5, .semibold)).foregroundStyle(Theme.text).lineLimit(1)
         case .music(_, let playing, let tint):
             MusicBars(playing: playing, tint: tint, paused: app.notch.hidden).frame(width: 22, height: 14)
-        case .timer(_, let text, _, let tint):
-            Text(text).font(Theme.mono(12.5, .bold)).foregroundStyle(tint)
+        case .timer(let d):
+            TimelineView(.periodic(from: .now, by: 1)) { ctx in
+                Text(d.text(at: ctx.date)).font(Theme.mono(12.5, .bold)).foregroundStyle(d.running ? d.tint : Theme.text2)
+            }
         case .charging(let level, _):
             Text("\(level)%").font(Theme.mono(12, .bold)).foregroundStyle(Theme.mint)
         case .meeting(let text):
@@ -159,6 +159,29 @@ struct ClosedWings: View {
         let f = DateFormatter()
         f.dateFormat = app.prefs.v.use24Hour ? "HH:mm" : "h:mm"
         return f.string(from: app.clock)
+    }
+}
+
+/// Progress ring with a small symbol in the middle.
+struct TimerRing: View {
+    var progress: Double
+    var tint: Color
+    var icon: String? = nil
+    var line: CGFloat = 3
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(tint.opacity(0.22), lineWidth: line)
+            Circle().trim(from: 0, to: max(0.001, progress))
+                .stroke(tint, style: StrokeStyle(lineWidth: line, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            if let icon {
+                GeometryReader { g in
+                    Image(systemName: icon).font(.system(size: g.size.width * 0.42, weight: .bold)).foregroundStyle(tint)
+                        .frame(width: g.size.width, height: g.size.height)
+                }
+            }
+        }
     }
 }
 

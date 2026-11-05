@@ -84,7 +84,7 @@ enum SelfTest {
 
         // Tabs.
         app.prefs.v.hiddenTabs = ["home"]
-        check(app.visibleTabs == [.home], "home cannot disappear completely")
+        check(app.visibleTabs.contains(.home), "home cannot be hidden")
         app.prefs.v.hiddenTabs = []
         check(app.visibleTabs.first == .home, "home first by default")
 
