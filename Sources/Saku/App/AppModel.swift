@@ -61,6 +61,7 @@ final class AppModel {
     var launcher: LauncherModel!
     var shortcuts: ShortcutsModel!
     var hotkeys: HotkeyCenter!
+    var tools: ToolsModel!
 
     /// Trackpad scrolling over the open notch (the teleprompter uses it).
     @ObservationIgnored var scrollHandler: ((CGFloat) -> Bool)?

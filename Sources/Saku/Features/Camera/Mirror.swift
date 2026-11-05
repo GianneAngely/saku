@@ -1,5 +1,5 @@
 import AppKit
-import AVFoundation
+@preconcurrency import AVFoundation
 import CoreImage
 import Observation
 import SwiftUI

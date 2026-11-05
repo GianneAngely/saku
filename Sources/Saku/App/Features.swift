@@ -27,6 +27,9 @@ enum Features {
         app.launcher = LauncherModel()
         app.shortcuts = ShortcutsModel(prefs: app.prefs)
         installHotkeys(app)
+        app.tools = ToolsModel()
+        SelfTest.suites.append(("calculator", CalculatorChecks.run))
+        Render.scenes += CalculatorChecks.scenes
         SelfTest.suites.append(("apps", AppsChecks.run))
         Render.scenes += AppsChecks.scenes
         // The camera never keeps running behind a closed notch.
@@ -183,7 +186,7 @@ enum Features {
                 app.notch.pinned.toggle()
             default:
                 guard let t = a.tab, Tab.available.contains(t) else { return }
-                app.commands.toggleNotch(t, [.clipboard, .apps, .ai].contains(t))
+                app.commands.toggleNotch(t, [.clipboard, .apps, .ai, .tools].contains(t))
             }
         }
         if !app.options.qa { h.apply() }
