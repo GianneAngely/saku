@@ -112,6 +112,47 @@ struct Countdown: Codable, Equatable {
     }
 }
 
+/// Stopwatch with laps. `startedAt` is a virtual start (now minus what already ran), so elapsed = now - startedAt.
+struct Stopwatch: Codable, Equatable {
+    var startedAt: Date?
+    var accumulated: Double = 0
+    var laps: [Double] = []       // elapsed time at each lap press
+
+    var running: Bool { startedAt != nil }
+    var started: Bool { startedAt != nil || accumulated > 0 }
+
+    func elapsed(at now: Date) -> Double {
+        if let s = startedAt { return max(0, now.timeIntervalSince(s)) }
+        return accumulated
+    }
+
+    mutating func toggle(at now: Date) {
+        if running {
+            accumulated = elapsed(at: now)
+            startedAt = nil
+        } else {
+            startedAt = now.addingTimeInterval(-accumulated)
+        }
+    }
+
+    mutating func lap(at now: Date) {
+        guard started else { return }
+        laps.append(elapsed(at: now))
+    }
+
+    mutating func reset() { self = Stopwatch() }
+
+    /// Length of each lap (difference between presses), newest last.
+    var splits: [Double] { laps.enumerated().map { i, t in t - (i > 0 ? laps[i - 1] : 0) } }
+
+    /// 0:41.20 or 1:02:41.20
+    static func text(_ s: Double) -> String {
+        let cs = Int((s * 100).rounded(.down))
+        let h = cs / 360_000, m = cs / 6000 % 60, sec = cs / 100 % 60, c = cs % 100
+        return h > 0 ? String(format: "%d:%02d:%02d.%02d", h, m, sec, c) : String(format: "%d:%02d.%02d", m, sec, c)
+    }
+}
+
 enum TimerMode: String, Codable, CaseIterable {
     case pomodoro, countdown, stopwatch
 
@@ -132,7 +173,7 @@ enum TimerMode: String, Codable, CaseIterable {
     }
 
     /// Modes whose feature has landed. Feature branches add themselves here.
-    static let available: [TimerMode] = [.pomodoro, .countdown]
+    static let available: [TimerMode] = [.pomodoro, .countdown, .stopwatch]
 }
 
 /// Everything saved between launches, so a running timer survives a restart.
@@ -141,6 +182,7 @@ struct TimersSave: Codable {
     var mode = TimerMode.pomodoro
     var countdown: Countdown? = nil
     var lastStarted: TimerMode? = nil
+    var stopwatch: Stopwatch? = nil
 }
 
 @MainActor @Observable
@@ -148,6 +190,7 @@ final class TimersModel {
     var pomo = Pomodoro() { didSet { changed() } }
     var mode = TimerMode.pomodoro { didSet { changed() } }
     var countdown = Countdown() { didSet { changed() } }
+    var stopwatch = Stopwatch() { didSet { changed() } }
     /// Which timer was started last (decides what the closed notch shows when several are active).
     private(set) var lastStarted: TimerMode? { didSet { changed() } }
 
@@ -166,6 +209,7 @@ final class TimersModel {
             pomo = s.pomo
             mode = TimerMode.available.contains(s.mode) ? s.mode : .pomodoro
             countdown = s.countdown ?? Countdown()
+            stopwatch = s.stopwatch ?? Stopwatch()
             lastStarted = s.lastStarted
         }
         loading = false
@@ -187,7 +231,7 @@ final class TimersModel {
         schedule()
     }
 
-    private func save() { store.save(TimersSave(pomo: pomo, mode: mode, countdown: countdown, lastStarted: lastStarted)) }
+    private func save() { store.save(TimersSave(pomo: pomo, mode: mode, countdown: countdown, lastStarted: lastStarted, stopwatch: stopwatch)) }
 
     // MARK: Pomodoro
 
@@ -256,6 +300,21 @@ final class TimersModel {
                 AlertAction(title: tr("Done")),
             ],
             autoDismiss: 120))
+    }
+
+    // MARK: Stopwatch
+
+    func swToggle(now: Date = Date()) {
+        stopwatch.toggle(at: now)
+        if stopwatch.running { lastStarted = .stopwatch }
+    }
+
+    func swLap(now: Date = Date()) { stopwatch.lap(at: now) }
+    func swReset() { stopwatch.reset() }
+
+    func swDisplay(now: Date = Date()) -> TimerDisplay {
+        TimerDisplay(icon: "stopwatch.fill", tint: Theme.sky, countsUp: true, anchor: stopwatch.startedAt,
+                     frozen: stopwatch.elapsed(at: now), total: 0)
     }
 
     func cdDisplay(now: Date = Date()) -> TimerDisplay {
@@ -336,6 +395,7 @@ final class TimersModel {
         switch p.closedStyle {
         case "pomodoro": return pomoDisplay()
         case "countdown": return cdDisplay()
+        case "stopwatch": return swDisplay()
         case "auto": return autoDisplay()
         default: return nil
         }
@@ -346,6 +406,7 @@ final class TimersModel {
         var out: [(TimerMode, Bool, TimerDisplay)] = []
         if pomo.started { out.append((.pomodoro, pomo.running, pomoDisplay())) }
         if countdown.started { out.append((.countdown, countdown.running, cdDisplay())) }
+        if stopwatch.started { out.append((.stopwatch, stopwatch.running, swDisplay())) }
         return out
     }
 

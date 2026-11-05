@@ -92,6 +92,25 @@ enum TimerChecks {
         app.dismissAlert()
         m.countdown = Countdown()
 
+        // Stopwatch.
+        var sw = Stopwatch()
+        sw.toggle(at: t0)
+        sw.lap(at: t0.addingTimeInterval(10))
+        sw.lap(at: t0.addingTimeInterval(25.5))
+        sw.toggle(at: t0.addingTimeInterval(30))
+        check(!sw.running && sw.accumulated == 30, "stopwatch pause keeps the time")
+        check(sw.splits == [10, 15.5], "lap splits")
+        sw.toggle(at: t0.addingTimeInterval(100))
+        check(abs(sw.elapsed(at: t0.addingTimeInterval(105)) - 35) < 0.001, "stopwatch resumes where it paused")
+        check(Stopwatch.text(61.237) == "1:01.23" && Stopwatch.text(3723.5) == "1:02:03.50", "stopwatch text")
+        m.stopwatch = Stopwatch()
+        m.swToggle()
+        if case .timer(let disp) = app.liveActivity {
+            check(disp.countsUp && disp.icon == "stopwatch.fill", "running stopwatch shows in the closed notch")
+        } else { check(false, "stopwatch in the closed notch") }
+        m.swReset()
+        check(!m.stopwatch.started, "stopwatch reset")
+
         // Saved state survives a restart.
         let saved = JSONStore<TimersSave>("timers.json").load()
         check(saved?.pomo == m.pomo, "timers are saved")
@@ -120,6 +139,20 @@ enum TimerChecks {
             app.timers.mode = .countdown
             app.timers.countdown = Countdown(total: 600, label: "Tea")
             app.timers.cdToggle(now: Date().addingTimeInterval(-151))
+        },
+        Render.Scene(name: "open-timers-stopwatch", settle: 0.4) { app in
+            app.notch.mode = .open
+            app.notch.tab = .timers
+            app.timers.mode = .stopwatch
+            let now = Date()
+            var sw = Stopwatch()
+            sw.toggle(at: now.addingTimeInterval(-162.4))
+            for t in [-130.0, -95.2, -61.9, -20.3] { sw.lap(at: now.addingTimeInterval(t)) }
+            app.timers.stopwatch = sw
+        },
+        Render.Scene(name: "closed-stopwatch", settle: 0.4) { app in
+            app.timers.stopwatch = Stopwatch()
+            app.timers.swToggle(now: Date().addingTimeInterval(-754))
         },
         Render.Scene(name: "alert-countdown", settle: 0.9) { app in
             app.present(NotchAlert(title: tr("%@ is done!", "Tea"), subtitle: tr("Your %@ countdown has finished.", "10:00"),
