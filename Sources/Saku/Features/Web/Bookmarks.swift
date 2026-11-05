@@ -73,28 +73,34 @@ struct BookmarkGrid: View {
         if b.items.isEmpty {
             Text(tr("Star a page to keep it here.")).font(Theme.font(11)).foregroundStyle(Theme.text3)
         } else {
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVGrid(columns: Array(repeating: GridItem(.fixed(84), spacing: 10), count: 6), spacing: 10) {
-                    ForEach(b.items) { item in
-                        Button { app.web.load(URL(string: item.url)!) } label: {
-                            VStack(spacing: 5) {
-                                Text(item.initial).font(Theme.font(18, .heavy)).foregroundStyle(Color.black.opacity(0.8))
-                                    .frame(width: 40, height: 40)
-                                    .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(item.tint))
-                                Text(item.title).font(Theme.font(10.5, .medium)).foregroundStyle(Theme.text2).lineLimit(1)
-                            }
-                            .frame(width: 84)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .help(item.url)
-                        .contextMenu {
-                            Button(tr("Open in your browser")) { if let u = URL(string: item.url) { NSWorkspace.shared.open(u) } }
-                            Button(tr("Copy link")) { app.clipboard?.copy(text: item.url) }
-                            Divider()
-                            Button(tr("Delete"), role: .destructive) { b.delete(item.id) }
-                        }
+            // Sits in the middle of the start page while it fits, scrolls when there are many.
+            ViewThatFits(in: .vertical) {
+                grid(b)
+                ScrollView(.vertical, showsIndicators: false) { grid(b) }
+            }
+        }
+    }
+
+    private func grid(_ b: BookmarksModel) -> some View {
+        CenteredFlow(spacing: 10, rowSpacing: 10) {
+            ForEach(b.items) { item in
+                Button { app.web.load(URL(string: item.url)!) } label: {
+                    VStack(spacing: 5) {
+                        Text(item.initial).font(Theme.font(18, .heavy)).foregroundStyle(Color.black.opacity(0.8))
+                            .frame(width: 40, height: 40)
+                            .background(RoundedRectangle(cornerRadius: 11, style: .continuous).fill(item.tint))
+                        Text(item.title).font(Theme.font(10.5, .medium)).foregroundStyle(Theme.text2).lineLimit(1)
                     }
+                    .frame(width: 84)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help(item.url)
+                .contextMenu {
+                    Button(tr("Open in your browser")) { if let u = URL(string: item.url) { NSWorkspace.shared.open(u) } }
+                    Button(tr("Copy link")) { app.clipboard?.copy(text: item.url) }
+                    Divider()
+                    Button(tr("Delete"), role: .destructive) { b.delete(item.id) }
                 }
             }
         }

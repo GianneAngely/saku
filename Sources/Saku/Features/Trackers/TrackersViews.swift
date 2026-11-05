@@ -17,7 +17,7 @@ struct TrackersView: View {
 enum TrackerExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
         CountersColumn(app: app)
-        WaterColumn(app: app).frame(width: 150)
+        WaterColumn(app: app).frame(width: 160)
     }
 }
 
@@ -52,8 +52,7 @@ struct CountersColumn: View {
                 } else if m.counters.isEmpty {
                     EmptyState(icon: "number.circle", title: tr("No counters yet"), subtitle: tr("Track habits and workouts with one tap."), tint: Theme.butter)
                 } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 4) {
+                    FadingList {
                             ForEach(m.counters) { c in
                                 CounterRow(app: app, counter: c)
                                     .contextMenu {
@@ -61,7 +60,6 @@ struct CountersColumn: View {
                                         Button(tr("Delete"), role: .destructive) { m.deleteCounter(c.id) }
                                     }
                             }
-                        }
                     }
                 }
             }
@@ -73,6 +71,7 @@ struct CountersColumn: View {
 struct CounterRow: View {
     let app: AppModel
     let counter: Counter
+    @State private var hovering = false
 
     var body: some View {
         let tint = Color(hexString: counter.color) ?? Theme.butter
@@ -89,20 +88,24 @@ struct CounterRow: View {
                 Text(subtitle).font(Theme.font(10)).foregroundStyle(Theme.text3).lineLimit(1)
             }
             Spacer(minLength: 2)
-            IconButton(symbol: "minus", size: 10, tint: Theme.text2, hit: 24) { app.trackers.bump(counter.id, by: -1) }
+            if hovering {
+                IconButton(symbol: "minus", size: 10, tint: Theme.text2, hit: 24, help: tr("Count one less")) { app.trackers.bump(counter.id, by: -1) }
+            }
             Button { app.trackers.bump(counter.id, by: 1) } label: {
                 Image(systemName: "plus").font(.system(size: 11, weight: .heavy)).foregroundStyle(Color.black.opacity(0.85))
                     .frame(width: 26, height: 26).background(Circle().fill(tint)).contentShape(Circle())
             }
             .buttonStyle(.plain)
         }
-        .frame(height: 36)
+        .frame(height: 34)
+        .contentShape(Rectangle())
+        .onHover { hovering = $0 }
     }
 
     private var subtitle: String {
         var parts: [String] = []
         if counter.goal > 0 { parts.append(tr("goal %d", counter.goal)) }
-        if counter.daily { parts.append(tr("resets daily")) }
+        if counter.daily { parts.append(tr("daily")) }
         return parts.isEmpty ? tr("tap + to count") : parts.joined(separator: " · ")
     }
 }
@@ -202,12 +205,10 @@ struct DaysLeftColumn: View {
                 } else if m.daysLeft.isEmpty {
                     EmptyState(icon: "flag.checkered", title: tr("No dates yet"), subtitle: tr("Count down to trips, exams or birthdays."))
                 } else {
-                    ScrollView(.vertical, showsIndicators: false) {
-                        VStack(spacing: 4) {
-                            ForEach(m.sortedDays) { d in
-                                DaysLeftRow(item: d, days: d.days(from: m.today), next: d.target(from: m.today))
-                                    .contextMenu { Button(tr("Delete"), role: .destructive) { m.deleteDay(d.id) } }
-                            }
+                    FadingList {
+                        ForEach(m.sortedDays) { d in
+                            DaysLeftRow(item: d, days: d.days(from: m.today), next: d.target(from: m.today))
+                                .contextMenu { Button(tr("Delete"), role: .destructive) { m.deleteDay(d.id) } }
                         }
                     }
                 }
@@ -239,7 +240,7 @@ struct DaysLeftRow: View {
                 }
             }
         }
-        .frame(height: 34)
+        .frame(height: 30)
     }
 
     private var dateText: String {

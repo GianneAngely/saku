@@ -575,4 +575,9 @@ ID = {
 "NotchBox is running too. Quit it from its own menu so the two notches don't overlap.": "NotchBox juga sedang berjalan. Tutup lewat menunya sendiri supaya dua notch tidak bertumpuk.",
 "Hover here any time": "Arahkan ke sini kapan saja",
 "Get started": "Mulai",
+"Temperature": "Suhu",
+"Power": "Daya",
+"Adapter": "Adaptor",
+"daily": "harian",
+"Count one less": "Kurangi satu",
 }

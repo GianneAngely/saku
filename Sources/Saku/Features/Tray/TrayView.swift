@@ -26,11 +26,15 @@ struct TrayView: View {
                                        subtitle: tr("Drag files onto the notch to keep them here, then drag them out when you need them."))
                         }
                 } else {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(alignment: .top, spacing: 8) {
-                            ForEach(tray.items) { item in TrayTile(app: app, item: item) }
+                    GeometryReader { g in
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            // Centred while the items fit, scrolls from the left once they don't.
+                            HStack(alignment: .top, spacing: 8) {
+                                ForEach(tray.items) { item in TrayTile(app: app, item: item) }
+                            }
+                            .padding(.vertical, 2)
+                            .frame(minWidth: g.size.width, minHeight: g.size.height)
                         }
-                        .padding(.vertical, 2)
                     }
                     .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Theme.blossom.opacity(targeted ? 0.10 : 0)))
                 }
@@ -154,8 +158,8 @@ struct FolderRow: View {
                 .help(f.path)
             }
             PillButton(title: tr("Pin folder"), icon: "plus", compact: true) { pickFolder() }
-            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity)
     }
 
     private func pickFolder() {

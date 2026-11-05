@@ -6,21 +6,18 @@ struct StopwatchView: View {
     var body: some View {
         let t = app.timers!
         let sw = t.stopwatch
-        HStack(alignment: .top, spacing: 14) {
-            VStack(alignment: .leading, spacing: 12) {
+        HStack(spacing: 14) {
+            VStack(spacing: 12) {
                 TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !sw.running || !app.notch.isOpen)) { ctx in
                     let e = sw.elapsed(at: ctx.date)
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(spacing: 2) {
                         Text(Stopwatch.text(e))
                             .font(Theme.mono(42, .heavy))
                             .foregroundStyle(sw.running ? Theme.text : Theme.text2)
-                        if !sw.laps.isEmpty {
-                            Text(tr("Lap %d", sw.laps.count + 1) + "  " + Stopwatch.text(e - (sw.laps.last ?? 0)))
-                                .font(Theme.mono(12, .semibold)).foregroundStyle(Theme.sky)
-                        }
+                        Text(sw.laps.isEmpty ? tr("Lap %d", 1) : tr("Lap %d", sw.laps.count + 1) + "  " + Stopwatch.text(e - (sw.laps.last ?? 0)))
+                            .font(Theme.mono(12, .semibold)).foregroundStyle(sw.laps.isEmpty ? Theme.text3 : Theme.sky)
                     }
                 }
-                .padding(.top, 4)
                 HStack(spacing: 6) {
                     PillButton(title: sw.running ? tr("Pause") : (sw.started ? tr("Resume") : tr("Start")),
                                icon: sw.running ? "pause.fill" : "play.fill", primary: true, tint: Theme.sky) { t.swToggle() }
@@ -28,8 +25,7 @@ struct StopwatchView: View {
                     PillButton(title: tr("Reset"), icon: "arrow.counterclockwise") { t.swReset() }
                 }
             }
-            .padding(.leading, 6)
-            Spacer(minLength: 0)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             Card(padding: 10) {
                 if sw.laps.isEmpty {
                     EmptyState(icon: "flag.fill", title: tr("No laps yet"), subtitle: tr("Press Lap while it runs."), tint: Theme.sky)
@@ -37,7 +33,7 @@ struct StopwatchView: View {
                     LapList(sw: sw)
                 }
             }
-            .frame(width: 250)
+            .frame(maxWidth: .infinity)
         }
     }
 }

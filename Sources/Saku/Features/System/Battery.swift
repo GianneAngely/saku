@@ -16,6 +16,7 @@ struct BatteryInfo: Equatable {
     var health: Int?                // percent of design capacity
     var cycles: Int?
     var temperature: Double?        // °C
+    var adapterWatts: Int?
 
     /// From one IOPSCopyPowerSourcesInfo description.
     static func parse(_ d: [String: Any]) -> BatteryInfo {
@@ -109,6 +110,9 @@ final class BatteryModel {
             }
         }
         b.lowPower = ProcessInfo.processInfo.isLowPowerModeEnabled
+        if b.onAC, let a = IOPSCopyExternalPowerAdapterDetails()?.takeRetainedValue() as? [String: Any] {
+            b.adapterWatts = a[kIOPSPowerAdapterWattsKey] as? Int
+        }
         let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSmartBattery"))
         if service != 0 {
             var props: Unmanaged<CFMutableDictionary>?
@@ -162,38 +166,56 @@ struct BatteryCard: View {
     var body: some View {
         let b = app.battery.info
         Card(padding: 12) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 10) {
-                    Image(systemName: b.symbol).font(.system(size: 30, weight: .regular)).foregroundStyle(b.tint)
+                    Image(systemName: b.symbol).font(.system(size: 28, weight: .regular)).foregroundStyle(b.tint)
                         .symbolRenderingMode(.hierarchical)
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("\(b.level)%").font(Theme.mono(24, .heavy)).foregroundStyle(Theme.text)
-                        Text(b.status).font(Theme.font(11, .medium)).foregroundStyle(Theme.text2).lineLimit(1)
-                        if b.lowPower {
-                            Label(tr("Low Power Mode"), systemImage: "leaf.fill").font(Theme.font(10, .semibold)).foregroundStyle(Theme.butter)
+                        HStack(spacing: 5) {
+                            Text("\(b.level)%").font(Theme.mono(22, .heavy)).foregroundStyle(Theme.text)
+                            if b.lowPower {
+                                Image(systemName: "leaf.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.butter)
+                                    .help(tr("Low Power Mode"))
+                            }
                         }
+                        Text(b.status).font(Theme.font(10.5, .medium)).foregroundStyle(Theme.text2).lineLimit(1).minimumScaleFactor(0.8)
                     }
                 }
                 ProgressTrack(value: Double(b.level) / 100, tint: b.tint, height: 5)
-                Spacer(minLength: 0)
-                HStack(spacing: 10) {
-                    if let h = b.health { Stat(label: tr("Health"), value: "\(h)%") }
-                    if let c = b.cycles { Stat(label: tr("Cycles"), value: "\(c)") }
-                    if let t = b.temperature { Stat(label: tr("Temp"), value: String(format: "%.0f°C", t)) }
+                Grid(horizontalSpacing: 6, verticalSpacing: 6) {
+                    GridRow {
+                        StatTile(label: tr("Health"), value: b.health.map { "\($0)%" } ?? "–", tint: healthTint(b.health))
+                        StatTile(label: tr("Cycles"), value: b.cycles.map(String.init) ?? "–")
+                    }
+                    GridRow {
+                        StatTile(label: tr("Temperature"), value: b.temperature.map { String(format: "%.0f°C", $0) } ?? "–")
+                        StatTile(label: tr("Power"), value: b.onAC ? (b.adapterWatts.map { "\($0) W" } ?? tr("Adapter")) : tr("Battery"))
+                    }
                 }
             }
         }
     }
+
+    private func healthTint(_ h: Int?) -> Color {
+        guard let h else { return Theme.text }
+        return h >= 80 ? Theme.mint : h >= 60 ? Theme.butter : Theme.coral
+    }
 }
 
-struct Stat: View {
+/// One battery figure in a soft tile: big value, small label.
+struct StatTile: View {
     var label: String
     var value: String
+    var tint: Color = Theme.text
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text(value).font(Theme.mono(12, .bold)).foregroundStyle(Theme.text)
-            Text(label).font(Theme.font(9.5, .semibold)).foregroundStyle(Theme.text3)
+        VStack(alignment: .leading, spacing: 1) {
+            Text(value).font(Theme.mono(14, .bold)).foregroundStyle(tint).lineLimit(1).minimumScaleFactor(0.7)
+            Text(label).font(Theme.font(9.5, .semibold)).foregroundStyle(Theme.text3).lineLimit(1).minimumScaleFactor(0.8)
         }
+        .padding(.horizontal, 9)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Color.white.opacity(0.05)))
     }
 }
 
