@@ -87,7 +87,7 @@ Saku never asks at launch. Each prompt appears the first time you use the featur
 
 | Permission | Asked when | Why |
 | --- | --- | --- |
-| Automation: Spotify, Music | Saku first reads or controls the player | Song info, artwork, play, pause, skip |
+| Automation: Spotify, Music | You press **Enable controls** on the music card | Song info, artwork, play, pause, skip |
 | Automation: Chrome, Safari | Only if browser music is on | Read and control the playing tab |
 | Calendars | Calendar tab › Allow access | Events, the meeting countdown, new events, Google Calendar |
 | Reminders | Calendar tab › Reminders › Allow access | Reminder lists |
