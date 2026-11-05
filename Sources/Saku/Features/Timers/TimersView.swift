@@ -164,7 +164,22 @@ struct TimersPane: View {
             } footer: {
                 Text(tr("Running timers show in the closed notch while Appearance > Closed notch style is Auto, or pin one there."))
             }
+            Section {
+                Picker(tr("When focus starts, run"), selection: $prefs.v.focusStartShortcut) {
+                    Text(tr("Nothing")).tag("")
+                    ForEach(app.shortcuts.names, id: \.self) { Text($0).tag($0) }
+                }
+                Picker(tr("When focus ends, run"), selection: $prefs.v.focusEndShortcut) {
+                    Text(tr("Nothing")).tag("")
+                    ForEach(app.shortcuts.names, id: \.self) { Text($0).tag($0) }
+                }
+            } header: {
+                Text(tr("Focus hooks"))
+            } footer: {
+                Text(tr("Pick a Shortcut that turns on Do Not Disturb, starts a playlist or dims the lights. Make one in the Shortcuts app first."))
+            }
         }
         .formStyle(.grouped)
+        .onAppear { app.shortcuts.reload() }
     }
 }

@@ -26,6 +26,15 @@ enum Features {
         app.mirror = MirrorModel(prefs: app.prefs)
         app.launcher = LauncherModel()
         app.shortcuts = ShortcutsModel(prefs: app.prefs)
+        // Focus hooks: run a chosen Shortcut when focus starts or ends (Do Not Disturb, music, lights...).
+        app.timers.onPhaseStart.append { [weak app] phase in
+            guard let app, phase == .focus, !app.prefs.v.focusStartShortcut.isEmpty else { return }
+            app.shortcuts.run(app.prefs.v.focusStartShortcut)
+        }
+        app.timers.onPhaseEnd.append { [weak app] phase in
+            guard let app, phase == .focus, !app.prefs.v.focusEndShortcut.isEmpty else { return }
+            app.shortcuts.run(app.prefs.v.focusEndShortcut)
+        }
         installHotkeys(app)
         app.tools = ToolsModel()
         app.colors = ColorPickerModel()
@@ -35,6 +44,7 @@ enum Features {
         app.eyeBreaks = EyeBreaks(app: app)
         if !app.options.qa { app.eyeBreaks.start() }
         SelfTest.suites.append(("eye breaks", EyeBreakChecks.run))
+        SelfTest.suites.append(("focus hooks", FocusHookChecks.run))
         SelfTest.suites.append(("calculator", CalculatorChecks.run))
         Render.scenes += CalculatorChecks.scenes
         SelfTest.suites.append(("apps", AppsChecks.run))

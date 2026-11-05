@@ -49,6 +49,8 @@ struct PrefsData: Codable, Equatable {
     var timerSound = true
     var timerVolume = 0.7
     var timerAlert = true
+    var focusStartShortcut = ""             // Apple Shortcut to run when a focus session starts
+    var focusEndShortcut = ""               // ...and when it ends
 
     // Tray
     var trayCopyFiles = false
