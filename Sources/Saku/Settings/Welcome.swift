@@ -29,6 +29,10 @@ struct WelcomePane: View {
                              text: tr("⌃⌥Space opens Saku, ⌃⌥V the clipboard, ⌃⌥P the teleprompter. Change them in Keyboard."))
                     TourCard(icon: "text.line.first.and.arrowtriangle.forward", tint: Theme.lavender, title: tr("Teleprompter"),
                              text: tr("Your script scrolls under the camera, hidden from screen sharing."))
+                    TourCard(icon: "square.grid.3x3.fill", tint: Theme.blossom, title: tr("Find anything"),
+                             text: tr("The grid button in the notch (or ⌃⌥/) lists every feature and where it lives: battery health, water, timers…"))
+                    TourCard(icon: "calendar.badge.plus", tint: Theme.sky, title: tr("Your Google Calendar"),
+                             text: tr("Add your Google account in Settings › Calendar. Saku shows its events and can add new ones."))
                     TourCard(icon: "lock.shield.fill", tint: Theme.coral, title: tr("Private by default"),
                              text: tr("No account. Saku asks for a permission only when you first use the feature that needs it."))
                 }

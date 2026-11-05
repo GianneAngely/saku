@@ -57,6 +57,8 @@ enum Features {
         Render.scenes += AIChecks.scenes
         SelfTest.suites.append(("translate", TranslateChecks.run))
         Render.scenes += TranslateChecks.scenes
+        SelfTest.suites.append(("finder", FinderChecks.run))
+        Render.scenes += FinderChecks.scenes
     }
 
     static func installWeb(_ app: AppModel) {
@@ -190,6 +192,11 @@ enum Features {
             guard let app else { return }
             switch a {
             case .toggle: app.commands.toggleNotch(nil, false)
+            case .features:
+                if app.notch.mode == .open && app.notch.finder { app.commands.closeNotch(); return }
+                if app.notch.mode != .open { app.commands.toggleNotch(nil, true) }
+                app.notch.finder = true
+                app.notch.focusSearch = true
             case .pomodoro:
                 app.timers.pomoToggle()
                 app.flash(app.timers.pomo.running ? "play.fill" : "pause.fill",

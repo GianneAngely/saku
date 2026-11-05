@@ -39,7 +39,7 @@ struct ToolsView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            CalculatorCard(app: app)
+            CalculatorCard(app: app).spotlight(app, "calculator")
             ToolsExtras.view(app: app)
         }
     }
@@ -49,7 +49,7 @@ struct ToolsView: View {
 @MainActor
 enum ToolsExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        ColorCard(app: app)
+        ColorCard(app: app).spotlight(app, "colour")
     }
 }
 
