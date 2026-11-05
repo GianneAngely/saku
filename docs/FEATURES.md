@@ -23,6 +23,8 @@ The tab bar sits on both sides of the camera. Tabs that don't fit, and every fea
 | Google Calendar | Settings › Calendar › Google Calendar | Through macOS Internet Accounts; see below |
 | Join meetings | Calendar tab and Home, **Join** button | Meet, Zoom, Teams, Webex, FaceTime; countdown beside the camera |
 | Notes | Notes tab | Several notes, saved as you type |
+| To-do list | To-do tab | Lists, subtasks, due dates ("Pay rent Friday"); works offline |
+| Google Tasks | Settings › To-do | Two-way sync with your own Google OAuth client; see below |
 | Teleprompter | Teleprompter tab | See below |
 | Days left | Trackers tab, left card | Trips, exams, birthdays (yearly) |
 | Habit counters | Trackers tab, middle card | Goals and a daily reset |
@@ -71,6 +73,16 @@ Saku never asks for your Google password and has no Google key. macOS does the s
 1. Settings › Calendar › **Connect Google Calendar** opens Internet Accounts. Add your Google account there and keep Calendars on.
 2. Your Google calendars appear in Saku a moment later. Pick one under *New events go to*.
 3. Apple Reminders doesn't sync with Google Tasks, so Saku can save reminders as short events with an alert in a calendar you pick. They ring on your phone through Google Calendar. Ticking one off in Saku puts ✓ in front of its title and removes the alert.
+
+## Google Tasks
+
+The To-do tab works on its own as a list on your Mac. To sync it both ways with Google Tasks (and the Tasks app on your phone), Saku uses **your own** Google Cloud OAuth client, because Saku has no server and ships no Google keys:
+
+1. Make a free Desktop-app OAuth client in your Google Cloud project and download its JSON. The step-by-step guide (in Bahasa Indonesia) is [docs/google-tasks-setup.md](google-tasks-setup.md).
+2. Settings › To-do › **Import client JSON…** (or drop it in `~/Library/Application Support/Saku/google-oauth.json`).
+3. **Sign in with Google**: your browser opens, you allow Saku to manage your tasks, and the tab fills in.
+
+Sign-in uses OAuth 2.0 with PKCE and a one-time listener on 127.0.0.1, and asks only for the Tasks scope. The token is kept in the macOS Keychain. Tasks are cached on the Mac, so the tab opens offline and changes sync when you're back online. Tasks due today show beside the camera.
 
 ## Ideas left out, and why
 

@@ -21,6 +21,7 @@ enum Features {
         installTrackers(app)
         installWeb(app)
         Secrets.inMemory = app.options.qa
+        installTodo(app)
         app.translate = TranslateModel(prefs: app.prefs)
         app.ai = AIModel(app: app)
         app.mirror = MirrorModel(prefs: app.prefs)
@@ -60,6 +61,20 @@ enum Features {
         SelfTest.suites.append(("finder", FinderChecks.run))
         Render.scenes += FinderChecks.scenes
         LiveTest.steps.append(("all features", FinderChecks.live))
+    }
+
+    /// To-do: a local list, synced with Google Tasks once Angel adds her own OAuth client and signs in.
+    static func installTodo(_ app: AppModel) {
+        let auth = GoogleAuth()
+        let api: TasksAPI = app.options.mock ? FakeTasksAPI() : GoogleTasksAPI(auth: auth)
+        if app.options.qa { auth.openBrowser = { _ in } }
+        app.todo = TodoModel(app: app, auth: auth, api: api)
+        app.addLive(priority: 35) { [weak app] in
+            guard let app, app.prefs.v.closedStyle == "auto" else { return nil }
+            return app.todo.liveActivity()
+        }
+        SelfTest.suites.append(("todo", TodoChecks.run))
+        Render.scenes += TodoChecks.scenes
     }
 
     static func installWeb(_ app: AppModel) {
@@ -243,6 +258,7 @@ enum Features {
     static func shutdown(_ app: AppModel) {
         app.hotkeys?.unregisterAll()
         app.notes?.saveNow()
+        app.todo?.saveNow()
         app.trackers?.saveNow()
         app.prompter?.stopVoice()
         app.prompter?.saveNow()

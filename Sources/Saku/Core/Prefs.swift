@@ -100,6 +100,10 @@ struct PrefsData: Codable, Equatable {
     var googleHintDismissed = false
     var googleAutoPicked = false            // the first Google calendar was set as home for new events once
 
+    // To-do
+    var todoInNotch = true                  // tasks due today show beside the camera
+    var todoShowCompleted = false
+
     // Battery and system
     var batteryInNotch = "plug"             // plug, always, never
     var batteryLowAlert = 15                // percent, 0 = off
