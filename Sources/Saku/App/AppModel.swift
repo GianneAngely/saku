@@ -60,6 +60,7 @@ final class AppModel {
     var mirror: MirrorModel!
     var launcher: LauncherModel!
     var shortcuts: ShortcutsModel!
+    var hotkeys: HotkeyCenter!
 
     /// Trackpad scrolling over the open notch (the teleprompter uses it).
     @ObservationIgnored var scrollHandler: ((CGFloat) -> Bool)?
@@ -186,5 +187,6 @@ final class AppModel {
 struct Commands {
     var openSettings: @MainActor (String?) -> Void = { _ in }
     var openNotch: @MainActor (Tab?) -> Void = { _ in }
+    var toggleNotch: @MainActor (Tab?, Bool) -> Void = { _, _ in }
     var closeNotch: @MainActor () -> Void = {}
 }

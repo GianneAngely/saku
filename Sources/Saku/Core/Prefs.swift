@@ -128,6 +128,10 @@ struct PrefsData: Codable, Equatable {
     // Shortcuts
     var shortcutsShown: [String] = []      // empty = all
 
+    // Keyboard
+    var hotkeys: [String: HotkeySpec] = [:]     // action -> keys; missing = default
+    var hotkeysCleared: [String] = []           // actions with no shortcut on purpose
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]

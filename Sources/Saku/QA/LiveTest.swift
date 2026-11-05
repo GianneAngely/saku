@@ -16,6 +16,7 @@ enum LiveTest {
         ("panel", panel),
         ("hover", hover),
         ("alert", alert),
+        ("keyboard", keyboard),
     ]
 
     static func run(app: AppModel, controller: NotchController) {
@@ -103,6 +104,34 @@ enum LiveTest {
         await wait(0.35)
         expect(app.notch.mode == .closed, "a quick pass does not open")
         app.prefs.v.hoverDelay = PrefsData().hoverDelay
+    }
+
+    /// A shortcut opens the notch without the pointer there; it stays until the pointer visits and leaves.
+    static func keyboard(_ app: AppModel, _ c: NotchController) async {
+        c.pointerOverride = away
+        c.close()
+        c.toggleFromKeyboard(.timers, typing: false)
+        expect(app.notch.mode == .open && app.notch.tab == .timers, "shortcut opens the notch on a tab")
+        c.pointer(at: away)
+        await wait(app.prefs.v.closeDelay + 0.3)
+        expect(app.notch.mode == .open, "stays open while the pointer is elsewhere")
+        let g = app.notch.geo
+        let inside = CGPoint(x: g.screenFrame.minX + g.midX, y: g.screenFrame.maxY - 60)
+        c.pointerOverride = inside
+        c.pointer(at: inside)
+        c.pointerOverride = away
+        c.pointer(at: away)
+        await wait(app.prefs.v.closeDelay + 0.3)
+        expect(app.notch.mode == .closed, "closes after the pointer visited and left")
+        c.toggleFromKeyboard(.timers, typing: false)
+        c.toggleFromKeyboard(.timers, typing: false)
+        expect(app.notch.mode == .closed, "the same shortcut closes it again")
+        c.toggleFromKeyboard(.clipboard, typing: true)
+        await wait(0.3)
+        expect(c.panel.isKeyWindow, "typing tabs take the keyboard")
+        c.close()
+        await wait(0.2)
+        expect(!c.panel.isKeyWindow, "closing gives the keyboard back")
     }
 
     static func alert(_ app: AppModel, _ c: NotchController) async {
