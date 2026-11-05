@@ -172,4 +172,4 @@ No third-party packages and no Xcode project: it builds with SwiftPM and the Com
 
 ## License
 
-The code is under the [MIT License](LICENSE). The Mascot pixel art in `Resources/mascot.png` is not: it stays © Gianne Angely.
+Saku is free and open source under the [MIT License](LICENSE).
