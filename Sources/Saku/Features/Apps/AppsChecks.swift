@@ -55,3 +55,39 @@ enum AppsChecks {
         },
     ]
 }
+
+@MainActor
+enum FocusHookChecks {
+    static func run(_ app: AppModel) {
+        func check(_ ok: Bool, _ name: String) { SelfTest.check(ok, name) }
+        let log = Paths.file("hook-log.txt")
+        try? FileManager.default.removeItem(at: log)
+        let fake = Paths.file("fake-shortcuts-hooks.sh")
+        try? "#!/bin/sh\nif [ \"$1\" = run ]; then echo \"$2\" >> '\(log.path)'; fi\nexit 0\n".write(to: fake, atomically: true, encoding: .utf8)
+        try? FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: fake.path)
+        let s = app.shortcuts!
+        s.tool = fake.path
+        app.prefs.v.focusStartShortcut = "Focus on"
+        app.prefs.v.focusEndShortcut = "Focus off"
+        app.prefs.v.timerAlert = false
+        app.prefs.v.timerSound = false
+        let t = app.timers!
+        t.pomo = Pomodoro()
+        t.pomoToggle()
+        t.check(now: Date().addingTimeInterval(app.prefs.v.pomoFocus * 60 + 1))
+        let until = Date().addingTimeInterval(5)
+        var lines: [String] = []
+        while lines.count < 2 && Date() < until {
+            RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+            lines = ((try? String(contentsOf: log, encoding: .utf8)) ?? "").split(separator: "\n").map(String.init)
+        }
+        check(lines == ["Focus on", "Focus off"], "focus start and end run their Shortcuts")
+        t.pomoReset()
+        t.pomo = Pomodoro()
+        app.prefs.v.focusStartShortcut = ""
+        app.prefs.v.focusEndShortcut = ""
+        app.prefs.v.timerAlert = true
+        app.prefs.v.timerSound = true
+        s.tool = "/usr/bin/shortcuts"
+    }
+}
