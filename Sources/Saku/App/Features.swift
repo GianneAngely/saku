@@ -9,6 +9,14 @@ enum Features {
         installMusic(app)
         installTimers(app)
         installTray(app)
+        installAirDrop(app)
+    }
+
+    static func installAirDrop(_ app: AppModel) {
+        app.dropHandlers[.airdrop] = { payload in
+            if !AirDrop.send(payload) { app.flash("exclamationmark.triangle.fill", tr("AirDrop takes files only"), tint: Theme.butter) }
+        }
+        SelfTest.suites.append(("airdrop", AirDropChecks.run))
     }
 
     static func installTray(_ app: AppModel) {
