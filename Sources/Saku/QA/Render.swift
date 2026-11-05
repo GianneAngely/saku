@@ -127,6 +127,8 @@ enum Render {
             demo.eventAccess = .granted
             demo.clearSaved()
             app.calendar.composing = nil
+            app.calendar.month = Calendar.current.startOfDay(for: Self.fixedDate)
+            app.calendar.selectedDay = Calendar.current.startOfDay(for: Self.fixedDate)
             app.calendar.reload()
         }
     }
