@@ -48,7 +48,7 @@ enum Tab: String, CaseIterable, Identifiable, Codable {
     }
 
     /// Tabs whose feature has landed. Feature branches add themselves here.
-    static let available: [Tab] = [.home, .tray, .clipboard, .timers, .notes, .prompter, .calendar, .trackers, .web, .translate, .ai, .camera, .apps, .system]
+    static let available: [Tab] = [.home, .tray, .clipboard, .timers, .notes, .prompter, .calendar, .trackers, .web, .translate, .ai, .camera, .apps, .system, .tools]
 }
 
 enum NotchMode: Equatable {
