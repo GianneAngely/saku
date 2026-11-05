@@ -28,6 +28,7 @@ enum Features {
         app.shortcuts = ShortcutsModel(prefs: app.prefs)
         installHotkeys(app)
         app.tools = ToolsModel()
+        app.colors = ColorPickerModel()
         SelfTest.suites.append(("calculator", CalculatorChecks.run))
         Render.scenes += CalculatorChecks.scenes
         SelfTest.suites.append(("apps", AppsChecks.run))

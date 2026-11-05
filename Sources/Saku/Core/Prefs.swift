@@ -132,6 +132,9 @@ struct PrefsData: Codable, Equatable {
     var hotkeys: [String: HotkeySpec] = [:]     // action -> keys; missing = default
     var hotkeysCleared: [String] = []           // actions with no shortcut on purpose
 
+    // Tools
+    var colorFormat = "hex"                 // hex, rgb, hsl, swiftui
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
