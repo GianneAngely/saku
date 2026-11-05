@@ -8,13 +8,14 @@ struct TimersView: View {
         VStack(alignment: .leading, spacing: 8) {
             if TimerMode.available.count > 1 {
                 Segments(items: TimerMode.available.map { ($0, $0.title) },
-                         selection: Binding(get: { t.mode }, set: { t.mode = $0 }), tint: Theme.butter)
+                         selection: Binding(get: { t.mode }, set: { t.mode = $0 }), tint: t.mode.tint)
             }
             switch t.mode {
             case .pomodoro: PomodoroView(app: app)
             default: TimerModeExtras.view(t.mode, app: app)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 }
 
@@ -23,6 +24,7 @@ struct TimersView: View {
 enum TimerModeExtras {
     @ViewBuilder static func view(_ mode: TimerMode, app: AppModel) -> some View {
         switch mode {
+        case .countdown: CountdownView(app: app)
         default: EmptyView()
         }
     }
