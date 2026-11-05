@@ -267,7 +267,10 @@ struct TodoPane: View {
                     Text(tr("To sync with Google Tasks, Saku needs your own free Google Cloud OAuth client (about 10 minutes, once). Until then, To-do keeps your tasks on this Mac."))
                         .font(.callout).foregroundStyle(.secondary)
                     HStack {
-                        Button(tr("Open the setup guide")) { if let u = AppResources.url("google-tasks-setup.md") { NSWorkspace.shared.open(u) } }
+                        Button(tr("Open the setup guide")) {
+                            let guide = Lang.shared.isIndonesian ? "google-tasks-setup.md" : "google-tasks-setup.en.md"
+                            if let u = AppResources.url(guide) { NSWorkspace.shared.open(u) }
+                        }
                         Spacer()
                         Button(tr("Import client JSON…")) { importJSON() }.buttonStyle(.borderedProminent)
                     }

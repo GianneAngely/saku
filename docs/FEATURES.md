@@ -78,7 +78,7 @@ Saku never asks for your Google password and has no Google key. macOS does the s
 
 The To-do tab works on its own as a list on your Mac. To sync it both ways with Google Tasks (and the Tasks app on your phone), Saku uses **your own** Google Cloud OAuth client, because Saku has no server and ships no Google keys:
 
-1. Make a free Desktop-app OAuth client in your Google Cloud project and download its JSON. The step-by-step guide (in Bahasa Indonesia) is [docs/google-tasks-setup.md](google-tasks-setup.md).
+1. Make a free Desktop-app OAuth client in your Google Cloud project and download its JSON. The step-by-step guide is [google-tasks-setup.en.md](google-tasks-setup.en.md), and in Bahasa Indonesia [google-tasks-setup.md](google-tasks-setup.md).
 2. Settings › To-do › **Import client JSON…** (or drop it in `~/Library/Application Support/Saku/google-oauth.json`).
 3. **Sign in with Google**: your browser opens, you allow Saku to manage your tasks, and the tab fills in.
 

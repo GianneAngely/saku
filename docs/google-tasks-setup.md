@@ -1,5 +1,7 @@
 # Sambungkan Google Tasks ke Saku
 
+*English: [google-tasks-setup.en.md](google-tasks-setup.en.md)*
+
 Tab **To-do** di Saku langsung bisa dipakai sebagai daftar tugas di Mac ini. Biar tugasnya sinkron dua arah dengan Google Tasks (dan aplikasi Tasks di HP Android), Saku butuh **OAuth client milikmu sendiri** dari Google Cloud. Gratis, sekali bikin, kira-kira 10 menit.
 
 Kenapa harus bikin sendiri? Saku tidak punya server dan tidak membawa kunci Google siapa pun. Kamu yang membuat "pintu masuk" ke akun Google-mu, Saku cuma memakainya di Mac ini. Saku hanya minta izin untuk **Google Tasks**, bukan email, Drive, atau yang lain.
@@ -79,7 +81,7 @@ Pilih salah satu:
 1. Pengaturan › To-do › **Masuk dengan Google**. Browser kamu terbuka.
 2. Pilih akun Google kamu.
 3. Muncul **"Google belum memverifikasi aplikasi ini"**: klik **Lanjutan** (Advanced) › **Buka Saku (tidak aman)**. Ini muncul karena aplikasinya buatanmu sendiri dan belum ditinjau Google, dan cukup sekali tiap kamu masuk. Di mode Testing layarnya sedikit beda: tinggal klik **Lanjutkan** (Continue).
-4. Izinkan **Lihat, edit, buat, dan hapus semua tugas Anda**, lalu **Lanjutkan**.
+4. Izinkan akses ke tugasmu (di layar berbahasa Inggris tertulis **Create, edit, organize, and delete all your tasks**), lalu **Lanjutkan**.
 5. Tab browser bilang "Saku is connected to Google Tasks". Tutup tabnya. Di Saku statusnya jadi **Tersambung ke Google Tasks** dan daftar tugasmu muncul di tab To-do.
 
 ## Kalau ada masalah
