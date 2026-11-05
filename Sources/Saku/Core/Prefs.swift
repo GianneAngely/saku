@@ -81,6 +81,15 @@ struct PrefsData: Codable, Equatable {
     var prompterVoice = false
     var prompterLanguage = "auto"           // auto, en-US, id-ID
 
+    // Calendar
+    var calendarMonthView = true
+    var calendarHideEnded = false
+    var calendarOnHome = true
+    var meetingHeadsUp = true
+    var meetingLead = 10.0                  // minutes
+    var calendarIDs: [String] = []          // empty = all
+    var reminderListIDs: [String] = []
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]

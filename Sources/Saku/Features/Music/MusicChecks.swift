@@ -47,7 +47,7 @@ enum MusicChecks {
         app.prefs.v.musicLiveActivity = true
         if case .music = app.liveActivity {} else { check(false, "music shows in the closed notch") }
         app.prefs.v.musicLiveActivity = false
-        check(app.liveActivity == .none, "music live activity can be turned off")
+        if case .music = app.liveActivity { check(false, "music live activity can be turned off") }
         app.prefs.v.musicLiveActivity = true
         app.prefs.v.closedStyle = "date"
         check(app.liveActivity == .date, "a fixed closed style wins over music")

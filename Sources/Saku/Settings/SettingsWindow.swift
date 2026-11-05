@@ -77,7 +77,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
     }
 
     /// Panes whose feature has landed. Feature branches add themselves here.
-    static let available: [SettingsPane] = [.general, .appearance, .tabs, .music, .tray, .clipboard, .timers, .notes, .prompter, .about]
+    static let available: [SettingsPane] = [.general, .appearance, .tabs, .music, .tray, .clipboard, .timers, .notes, .prompter, .calendar, .about]
 }
 
 @MainActor @Observable
@@ -174,6 +174,7 @@ enum FeaturePanes {
         case .clipboard: ClipboardPane(app: app)
         case .notes: NotesPane(app: app)
         case .prompter: PrompterPane(app: app)
+        case .calendar: CalendarPane(app: app)
         default: Text(p.title).foregroundStyle(.secondary)
         }
     }
