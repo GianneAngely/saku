@@ -32,6 +32,14 @@ struct PrefsData: Codable, Equatable {
     var timeColor = "#FF7EB6"
     var use24Hour = true
 
+    // Music
+    var musicLiveActivity = true
+    var musicHideWhenPaused = true
+    var musicAlbumTint = true
+    var musicCoverBackground = false
+    var musicPreferredPlayer = "auto"       // auto, spotify, music, browser
+    var musicOnHome = true
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
