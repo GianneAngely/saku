@@ -17,6 +17,13 @@ enum Features {
         installBattery(app)
         app.monitor = SystemMonitor()
         SelfTest.suites.append(("system", SystemChecks.run))
+        installTrackers(app)
+    }
+
+    static func installTrackers(_ app: AppModel) {
+        app.trackers = TrackersModel(app: app)
+        SelfTest.suites.append(("trackers", TrackerChecks.run))
+        Render.scenes += TrackerChecks.scenes
     }
 
     static func installBattery(_ app: AppModel) {
@@ -128,6 +135,7 @@ enum Features {
 
     static func shutdown(_ app: AppModel) {
         app.notes?.saveNow()
+        app.trackers?.saveNow()
         app.prompter?.stopVoice()
         app.prompter?.saveNow()
         if let clip = app.clipboard {
