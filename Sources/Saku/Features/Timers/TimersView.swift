@@ -25,6 +25,7 @@ enum TimerModeExtras {
     @ViewBuilder static func view(_ mode: TimerMode, app: AppModel) -> some View {
         switch mode {
         case .countdown: CountdownView(app: app)
+        case .stopwatch: StopwatchView(app: app)
         default: EmptyView()
         }
     }
