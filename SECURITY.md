@@ -1,6 +1,6 @@
 # Security
 
-Saku runs only on your Mac. It has no servers and no accounts, and it keeps your API keys in the macOS Keychain.
+Saku runs only on your Mac. It has no servers and no accounts, and it keeps your API keys and Google sign-in tokens in the macOS Keychain.
 
 ## Reporting a problem
 

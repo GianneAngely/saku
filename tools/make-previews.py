@@ -29,7 +29,7 @@ for n in settings:
     Image.open(os.path.join(src, n + ".png")).convert("RGB").save(os.path.join(out, n + ".png"))
 
 # 2. README screenshot: six states on a soft backdrop, 2 columns.
-picks = ["open-home-full", "open-timers-pomodoro", "prompter-reading", "open-calendar-new-event", "open-tray", "open-system"]
+picks = ["open-home-full", "open-timers-pomodoro", "prompter-reading", "open-todo-google", "open-tray", "open-system"]
 TW, TH = 1000, 354           # each tile, about 2048 px wide in all
 tiles = [crop(n, 370, 262).resize((TW, TH), Image.LANCZOS) for n in picks]
 gap, pad = 32, 44
