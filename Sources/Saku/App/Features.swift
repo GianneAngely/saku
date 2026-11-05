@@ -24,6 +24,7 @@ enum Features {
 
     static func installWeb(_ app: AppModel) {
         app.web = WebModel(prefs: app.prefs)
+        app.bookmarks = BookmarksModel()
         SelfTest.suites.append(("web", WebChecks.run))
         Render.scenes += WebChecks.scenes
         LiveTest.steps.append(("web", WebChecks.live))

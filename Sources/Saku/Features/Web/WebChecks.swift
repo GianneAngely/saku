@@ -23,6 +23,19 @@ enum WebChecks {
         check(app.maxPanelSize.height >= app.prefs.v.webHeight, "the panel window is big enough for the Web tab")
         check(app.web.view.needsPanelToBecomeKey, "clicking a page lets you type in it")
         check(app.web.view.customUserAgent == WebModel.mobileAgent, "mobile layout by default")
+
+        // Bookmarks.
+        let b = app.bookmarks!
+        for i in b.items { b.delete(i.id) }
+        b.toggle(title: "itch.io", url: "https://itch.io/games")
+        b.toggle(title: "", url: "https://github.com/GianneAngely")
+        b.toggle(title: "bad", url: "notaurl")
+        check(b.items.count == 2 && b.items[1].title == "github.com", "bookmarks add, untitled ones use the host")
+        check(b.contains("https://itch.io/games") && b.items[0].initial == "I", "bookmark lookup and initial")
+        b.toggle(title: "itch.io", url: "https://itch.io/games")
+        check(!b.contains("https://itch.io/games"), "starring again removes it")
+        check(JSONStore<[Bookmark]>("bookmarks.json").load()?.count == 1, "bookmarks are saved")
+        for i in b.items { b.delete(i.id) }
     }
 
     /// Loads a local page in the real web view and takes a snapshot of it (no network).
@@ -46,6 +59,11 @@ enum WebChecks {
     static let scenes: [Render.Scene] = [
         Render.Scene(name: "open-web", settle: 0.5) { app in
             app.web.home()
+            let b = app.bookmarks!
+            for i in b.items { b.delete(i.id) }
+            for (t, u) in [("itch.io", "https://gianneangely.itch.io"), ("GitHub", "https://github.com/GianneAngely"), ("Figma", "https://figma.com"),
+                           ("Pinterest", "https://pinterest.com"), ("Notion", "https://notion.so"), ("YouTube", "https://youtube.com"),
+                           ("Claude", "https://claude.ai"), ("Translate", "https://translate.google.com")] { b.toggle(title: t, url: u) }
             app.notch.mode = .open
             app.notch.tab = .web
         },
