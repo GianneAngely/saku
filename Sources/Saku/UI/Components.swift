@@ -247,10 +247,17 @@ enum AppResources {
         return FileManager.default.fileExists(atPath: repo.path) ? repo : nil
     }
 
-    @MainActor static let mascot: NSImage? = url("mascot.png").flatMap(NSImage.init(contentsOf:))
+    /// A picture of your own for the alert card and the idle mark, kept outside the app and the repo:
+    /// ~/Library/Application Support/Saku/mascot.png. Without it Saku shows its logo and plain symbols.
+    @MainActor static let mascot: NSImage? = {
+        let u = Paths.file("mascot.png")
+        return FileManager.default.fileExists(atPath: u.path) ? NSImage(contentsOf: u) : nil
+    }()
+
+    @MainActor static let appIcon: NSImage? = url("AppIcon.icns").flatMap(NSImage.init(contentsOf:))
 }
 
-/// Mascot's pixel avatar on a pink tile (from Angel's own art), crisp at any size.
+/// The optional mascot picture on a pink tile, crisp at any size (pixel art stays sharp at 66 pt and up).
 struct MascotTile: View {
     var size: CGFloat = 64
 
@@ -263,7 +270,7 @@ struct MascotTile: View {
                 let art = size >= 60 ? 66 : size * 0.92
                 Image(nsImage: img).resizable().interpolation(size >= 60 ? .none : .high).frame(width: art, height: art)
             } else {
-                Image(systemName: "cat.fill").font(.system(size: size * 0.45)).foregroundStyle(Theme.berry).padding(.bottom, size * 0.2)
+                BlossomMark(size: size * 0.5).frame(maxHeight: .infinity)
             }
         }
         .frame(width: size, height: size)

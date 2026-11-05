@@ -67,7 +67,7 @@ struct AlertAction: Identifiable {
     var run: @MainActor () -> Void = {}
 }
 
-/// Compact card that springs out of the notch (timer done, reminders). Mascot pops in like NotchPing.
+/// Compact card that springs out of the notch (timer done, reminders). Its badge pops in like NotchPing.
 struct NotchAlert: Identifiable {
     let id = UUID()
     var title: String

@@ -330,6 +330,7 @@ enum Indonesian {
         "Low Power Mode": "Mode Daya Rendah",
         "Low battery alert": "Peringatan baterai lemah",
         "Made by Gianne Angely. No accounts, no tracking, everything stays on this Mac.": "Dibuat oleh Gianne Angely. Tanpa akun, tanpa pelacakan, semuanya tetap di Mac ini.",
+        "Mascot": "Maskot",
         "Medium": "Sedang",
         "Memory": "Memori",
         "Mic not allowed": "Mikrofon belum diizinkan",

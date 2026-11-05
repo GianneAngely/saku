@@ -118,7 +118,7 @@ struct ClosedWings: View {
         switch live {
         case .none: EmptyView()
         case .mark(let m):
-            if m == "mascot" { MascotTile(size: 20) } else { BlossomMark(size: 15) }
+            if m == "mascot" && AppResources.mascot != nil { MascotTile(size: 20) } else { BlossomMark(size: 15) }
         case .date:
             Text(dateText).font(Theme.font(12, .semibold)).foregroundStyle(Color(hexString: app.prefs.v.dateColor) ?? Theme.text)
         case .hud(let h):
@@ -550,6 +550,23 @@ enum DropReader {
 
 // MARK: - Alert card
 
+/// Left side of an alert: your mascot picture when there is one, else the alert's own symbol on a soft tile.
+struct AlertBadge: View {
+    let alert: NotchAlert
+    var size: CGFloat = 70
+
+    var body: some View {
+        if AppResources.mascot != nil {
+            MascotTile(size: size)
+        } else {
+            RoundedRectangle(cornerRadius: size * 0.27, style: .continuous)
+                .fill(alert.tint.opacity(0.18))
+                .overlay(Image(systemName: alert.icon).font(.system(size: size * 0.4, weight: .bold)).foregroundStyle(alert.tint))
+                .frame(width: size, height: size)
+        }
+    }
+}
+
 struct AlertCard: View {
     let app: AppModel
     let alert: NotchAlert
@@ -557,7 +574,7 @@ struct AlertCard: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            MascotTile(size: 70)
+            AlertBadge(alert: alert)
                 .scaleEffect(pop ? 1 : 0.6)
                 .offset(y: pop ? 0 : 8)
                 .animation(app.notch.reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.55).delay(0.12), value: pop)
