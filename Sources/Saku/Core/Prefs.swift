@@ -98,6 +98,7 @@ struct PrefsData: Codable, Equatable {
     var reminderCalendarID = ""
     var reminderAlert = 0.0                 // minutes before the due time
     var googleHintDismissed = false
+    var googleAutoPicked = false            // the first Google calendar was set as home for new events once
 
     // Battery and system
     var batteryInNotch = "plug"             // plug, always, never

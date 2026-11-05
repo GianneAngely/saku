@@ -54,14 +54,26 @@ enum Render {
         // Settings panes as standalone images (the real window uses the same views).
         if only == nil || only!.contains(where: { "settings".hasPrefix($0) || $0.hasPrefix("settings") }) {
             reset(app)
-            let panes: [(String, AnyView)] = [
-                ("settings-welcome", AnyView(WelcomePane(app: app))),
-                ("settings-appearance", AnyView(AppearancePane(app: app))),
-                ("settings-keyboard", AnyView(KeyboardPane(app: app))),
-                ("settings-music", AnyView(MusicPane(app: app))),
-                ("settings-calendar", AnyView(CalendarPane(app: app))),
+            let demo = app.calendar?.source as? DemoCalendarSource
+            let panes: [(String, AnyView, @MainActor () -> Void)] = [
+                ("settings-welcome", AnyView(WelcomePane(app: app)), {}),
+                ("settings-appearance", AnyView(AppearancePane(app: app)), {}),
+                ("settings-keyboard", AnyView(KeyboardPane(app: app)), {}),
+                ("settings-music", AnyView(MusicPane(app: app)), {}),
+                ("settings-calendar", AnyView(CalendarPane(app: app)), {
+                    app.prefs.v.newEventCalendarID = "google"
+                    app.prefs.v.reminderTarget = "calendar"
+                    app.prefs.v.reminderCalendarID = "google"
+                    app.calendar.reload()
+                }),
+                ("settings-calendar-ask", AnyView(CalendarPane(app: app)), {
+                    demo?.eventAccess = .unknown
+                    app.calendar.reload()
+                }),
             ]
-            for (name, v) in panes {
+            for (name, v, setup) in panes {
+                reset(app)
+                setup()
                 let size = CGSize(width: 620, height: 640)
                 if let rep = snapshot(v.frame(width: size.width, height: size.height).background(Color(nsColor: .windowBackgroundColor))
                     .environment(\.colorScheme, .dark), size: size, settle: 0.6) {
@@ -79,6 +91,7 @@ enum Render {
         app.prefs.v = PrefsData()
         app.prefs.v.language = lang
         app.prefs.v.onboarded = true
+        app.prefs.v.googleAutoPicked = true
         app.prefs.v.hiddenTabs = []
         app.notch.mode = .closed
         app.notch.alert = nil

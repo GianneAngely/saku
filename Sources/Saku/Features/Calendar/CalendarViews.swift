@@ -63,16 +63,20 @@ struct CalendarAccessPrompt: View {
     var body: some View {
         let m = app.calendar!
         let access = reminders ? m.reminderAccess : m.eventAccess
+        let blocked = access == .denied || access == .addOnly
         EmptyState(icon: reminders ? "checklist" : "calendar",
-                   title: reminders ? tr("See your reminders here") : tr("See your calendar here"),
-                   subtitle: access == .denied ? tr("Saku is not allowed yet. Turn it on in Privacy & Security.")
-                                               : tr("Today's events, a month view and a heads-up before meetings.")) {
-            if access == .denied {
-                PillButton(title: tr("Open Privacy settings"), icon: "lock.fill", primary: true) {
-                    Privacy.open(reminders ? "Privacy_Reminders" : "Privacy_Calendars")
+                   title: blocked ? (reminders ? tr("Saku can't see your reminders") : tr("Saku can't see your calendars"))
+                                  : (reminders ? tr("See your reminders here") : tr("Connect your calendars")),
+                   subtitle: blocked ? (reminders ? tr("Turn on Saku in Privacy & Security › Reminders, then come back.")
+                                                  : tr("Turn on Saku with full access in Privacy & Security › Calendars, then come back."))
+                                     : (reminders ? tr("Allow Reminders once and your lists show up here.")
+                                                  : tr("Allow Calendar access once. Your events show up here, Google Calendar too."))) {
+            if blocked {
+                PillButton(title: tr("Open Privacy & Security"), icon: "lock.fill", primary: true) {
+                    if reminders { Privacy.open("Privacy_Reminders") } else { GoogleCalendar.openPrivacy() }
                 }
             } else {
-                PillButton(title: tr("Allow access"), icon: "checkmark", primary: true) {
+                PillButton(title: reminders ? tr("Allow Reminders access") : tr("Allow Calendar access"), icon: "checkmark", primary: true) {
                     if reminders { m.requestReminderAccess() } else { m.requestAccess() }
                 }
             }
@@ -489,12 +493,20 @@ struct GoogleHint: View {
     let app: AppModel
 
     var body: some View {
+        let m = app.calendar!
         HStack(spacing: 6) {
-            Image(systemName: "link").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.sky)
-            Text(tr("Want your Google Calendar here too?")).font(Theme.font(11, .medium)).foregroundStyle(Theme.text2).lineLimit(1)
-            Spacer(minLength: 4)
-            PillButton(title: tr("Connect"), compact: true) { app.commands.openSettings("calendar") }
-            IconButton(symbol: "xmark", size: 8.5, tint: Theme.text3, hit: 18, help: tr("Hide")) { app.prefs.v.googleHintDismissed = true }
+            if m.connecting {
+                ProgressView().controlSize(.mini)
+                Text(tr("Waiting for Google… sign in in System Settings")).font(Theme.font(11, .medium)).foregroundStyle(Theme.text2).lineLimit(1)
+                Spacer(minLength: 4)
+                IconButton(symbol: "xmark", size: 8.5, tint: Theme.text3, hit: 18, help: tr("Stop waiting")) { m.stopWatching() }
+            } else {
+                Image(systemName: "link").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.sky)
+                Text(tr("Want your Google Calendar here too?")).font(Theme.font(11, .medium)).foregroundStyle(Theme.text2).lineLimit(1)
+                Spacer(minLength: 4)
+                PillButton(title: tr("Connect"), compact: true) { m.connectGoogle() }
+                IconButton(symbol: "xmark", size: 8.5, tint: Theme.text3, hit: 18, help: tr("Hide")) { app.prefs.v.googleHintDismissed = true }
+            }
         }
         .padding(.leading, 9).padding(.trailing, 3)
         .frame(height: 30)
@@ -620,43 +632,70 @@ struct CalendarPickerItems: View {
     }
 }
 
-/// Three steps to Google Calendar through macOS Internet Accounts. Saku never asks for the Google password.
+/// Everything about the calendar connection in one place: permission, the accounts Saku can read, where new
+/// events and reminders go, and one button to bring in Google through macOS Internet Accounts.
 struct GoogleCalendarSection: View {
     let app: AppModel
 
     var body: some View {
         let m = app.calendar!
         let p = app.prefs.v
-        let pickedGoogle = [p.newEventCalendarID, p.reminderTarget == "calendar" ? p.reminderCalendarID : ""]
-            .contains { id in m.calendar(id)?.google == true }
         Section {
-            ForEach(m.googleAccounts, id: \.self) { acc in
-                Label {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(acc)
-                        Text(tr("%d calendars, synced by macOS", m.calendarList.filter { $0.account == acc }.count))
-                            .font(.caption).foregroundStyle(.secondary)
+            LabeledContent(tr("Calendar access")) {
+                HStack(spacing: 8) {
+                    StatusDot(color: m.eventAccess == .granted ? .green : m.eventAccess == .unknown ? .orange : .red)
+                    Text(accessText(m.eventAccess)).foregroundStyle(.secondary)
+                    switch m.eventAccess {
+                    case .unknown: Button(tr("Allow Calendar access")) { m.requestAccess() }.buttonStyle(.borderedProminent)
+                    case .denied, .addOnly: Button(tr("Open Privacy & Security")) { GoogleCalendar.openPrivacy() }
+                    case .granted: EmptyView()
                     }
-                } icon: {
-                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
                 }
             }
-            SetupStep(number: 1, title: tr("Let Saku use your calendars"), done: m.eventAccess == .granted) {
-                if m.eventAccess == .denied {
-                    Button(tr("Open Privacy settings")) { Privacy.open("Privacy_Calendars") }
-                } else if m.eventAccess != .granted {
-                    Button(tr("Allow")) { m.requestAccess() }
+            if m.eventAccess == .denied || m.eventAccess == .addOnly {
+                Text(tr("Turn on Saku with full access in Privacy & Security › Calendars, then come back. macOS only asks once."))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            if m.eventAccess == .granted {
+                LabeledContent(tr("Calendars Saku can see")) {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        if m.sourceLines.isEmpty { Text(tr("None yet")).foregroundStyle(.secondary) }
+                        ForEach(m.sourceLines, id: \.self) { Text($0).foregroundStyle(.secondary) }
+                    }
+                }
+                LabeledContent(tr("New events go to")) {
+                    Text(m.calendar(m.targetCalendarID).map(Self.name) ?? tr("Default calendar")).foregroundStyle(.secondary)
+                }
+                LabeledContent(tr("New reminders go to")) {
+                    Text(m.remindersAsEvents ? (m.calendar(p.reminderCalendarID).map(Self.name) ?? "–") : tr("Apple Reminders")).foregroundStyle(.secondary)
                 }
             }
-            SetupStep(number: 2, title: tr("Add your Google account to macOS"),
-                      detail: tr("Internet Accounts opens. Click Add Account, choose Google and sign in with the account you want. Keep Calendars on."),
-                      done: !m.googleAccounts.isEmpty) {
-                Button(m.googleAccounts.isEmpty ? tr("Connect Google Calendar") : tr("Add another")) { GoogleCalendar.openInternetAccounts() }
-                    .buttonStyle(.borderedProminent)
-            }
-            SetupStep(number: 3, title: tr("Pick a Google calendar for new events and reminders"),
-                      detail: tr("Your Google calendars show up here a moment after you sign in."), done: pickedGoogle) {
-                EmptyView()
+            if !m.googleAccounts.isEmpty {
+                ForEach(m.googleAccounts, id: \.self) { acc in
+                    Label(tr("Connected: %@", acc), systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                }
+                HStack {
+                    Spacer()
+                    Button(tr("Add another account")) { GoogleCalendar.openInternetAccounts() }
+                    Button { m.refreshSources() } label: { Image(systemName: "arrow.clockwise") }.help(tr("Refresh"))
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(tr("1. Click Connect: macOS opens Internet Accounts.")).font(.callout)
+                    Text(tr("2. Add Account › Google, then sign in with the Google account you want.")).font(.callout)
+                    Text(tr("3. Keep Calendars on. Saku picks your Google calendar and says when it's connected.")).font(.callout)
+                }
+                .foregroundStyle(.secondary)
+                HStack {
+                    if m.connecting {
+                        ProgressView().controlSize(.small)
+                        Text(tr("Waiting for your Google account…")).foregroundStyle(.secondary)
+                        Button(tr("Stop waiting")) { m.stopWatching() }
+                    }
+                    Spacer()
+                    Button { m.refreshSources() } label: { Image(systemName: "arrow.clockwise") }.help(tr("Refresh"))
+                    Button(tr("Connect Google Calendar")) { m.connectGoogle() }.buttonStyle(.borderedProminent)
+                }
             }
         } header: {
             Text(tr("Google Calendar"))
@@ -664,31 +703,20 @@ struct GoogleCalendarSection: View {
             Text(tr("Saku never sees your Google password: macOS signs in and keeps the calendars in sync, Saku reads and writes them on this Mac. No Google key, nothing sent anywhere else."))
         }
     }
-}
 
-struct SetupStep<Action: View>: View {
-    var number: Int
-    var title: String
-    var detail: String = ""
-    var done: Bool
-    @ViewBuilder var action: Action
+    static func name(_ c: CalList) -> String { c.google ? "\(c.title) · Google" : c.title }
 
-    var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            ZStack {
-                Circle().fill(done ? Color.green : Color.secondary.opacity(0.25)).frame(width: 20, height: 20)
-                if done {
-                    Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(.white)
-                } else {
-                    Text("\(number)").font(.system(size: 11, weight: .bold)).foregroundStyle(.primary)
-                }
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).fontWeight(.medium)
-                if !detail.isEmpty { Text(detail).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true) }
-            }
-            Spacer(minLength: 8)
-            action
+    private func accessText(_ a: CalAccess) -> String {
+        switch a {
+        case .granted: tr("Allowed")
+        case .unknown: tr("Not asked yet")
+        case .denied: tr("Not allowed")
+        case .addOnly: tr("Add-only (Saku needs full access)")
         }
     }
+}
+
+struct StatusDot: View {
+    var color: Color
+    var body: some View { Circle().fill(color).frame(width: 8, height: 8) }
 }

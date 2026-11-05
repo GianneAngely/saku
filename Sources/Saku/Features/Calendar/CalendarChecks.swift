@@ -163,6 +163,90 @@ enum CalendarChecks {
         demo.clearSaved()
         m.reload()
         app.notch.hud = nil
+        connectChecks(app)
+    }
+
+    /// Connecting Google: Calendar access asked once, Internet Accounts, the account showing up, auto-pick and the
+    /// "Connected" note. Nothing opens for real and no permission prompt appears: the demo source answers.
+    static func connectChecks(_ app: AppModel) {
+        func check(_ ok: Bool, _ name: String) { SelfTest.check(ok, name) }
+        func spin(_ seconds: Double = 2, _ done: () -> Bool) {
+            let until = Date().addingTimeInterval(seconds)
+            while !done() && Date() < until { RunLoop.main.run(until: Date().addingTimeInterval(0.02)) }
+        }
+        let m = app.calendar!
+        guard let demo = m.source as? DemoCalendarSource else { return check(false, "demo calendar in tests") }
+        var opened: [URL] = []
+        let realOpen = GoogleCalendar.open
+        GoogleCalendar.open = { opened.append($0) }
+        defer { GoogleCalendar.open = realOpen }
+        func fresh() {
+            app.prefs.v.googleAutoPicked = false
+            app.prefs.v.newEventCalendarID = ""
+            app.prefs.v.reminderTarget = "reminders"
+            app.prefs.v.reminderCalendarID = ""
+            app.notch.hud = nil
+        }
+
+        // Never asked, no Google yet: one button asks for access, opens Internet Accounts and waits.
+        demo.clearSaved()
+        demo.eventAccess = .unknown
+        demo.hasGoogle = false
+        fresh()
+        m.reload()
+        check(m.eventAccess == .unknown && m.calendarList.isEmpty, "no calendars before access")
+        m.connectGoogle()
+        spin { m.connecting }
+        check(m.eventAccess == .granted && opened == [GoogleCalendar.settingsURL] && m.connecting,
+              "Connect asks for access once, opens Internet Accounts and waits")
+        check(m.sourceLines == ["iCloud: 2 calendars"] || m.sourceLines == [tr("%@: %d calendars", "iCloud", 2)], "status lists what Saku can read")
+
+        // The Google account shows up (timer or store change): picked, noted, waiting stops.
+        demo.hasGoogle = true
+        m.refreshSources()
+        check(!m.connecting && app.prefs.v.newEventCalendarID == "google" && app.prefs.v.reminderTarget == "calendar"
+              && app.prefs.v.reminderCalendarID == "google", "the Google calendar becomes home for new events and reminders")
+        check(app.notch.hud?.text == tr("Connected to Google Calendar"), "a small Connected note shows in the notch")
+        check(m.sourceLines.contains { $0.contains("Google (name@gmail.com)") } && demo.refreshes > 0, "status names the Google account")
+        check(m.primaryGoogleCalendar?.id == "google", "the account's own calendar, not the read-only holidays")
+
+        // Only once, and never over her own choice.
+        app.prefs.v.newEventCalendarID = "home"
+        m.reload()
+        check(app.prefs.v.newEventCalendarID == "home", "auto-pick happens once")
+        fresh()
+        app.prefs.v.newEventCalendarID = "work"
+        m.reload()
+        check(app.prefs.v.newEventCalendarID == "work" && app.prefs.v.reminderCalendarID == "google",
+              "an earlier pick for events stays, unset reminders follow Google")
+
+        // Already connected: nothing to open.
+        opened = []
+        m.connectGoogle()
+        spin(0.2) { false }
+        check(opened.isEmpty, "already connected: Connect opens nothing")
+
+        // Turned off in Privacy & Security: Connect goes there, never to Internet Accounts.
+        demo.eventAccess = .denied
+        m.reload()
+        m.connectGoogle()
+        spin { !opened.isEmpty }
+        check(opened == [GoogleCalendar.privacyURL] && m.calendarList.isEmpty, "denied access sends you to Privacy & Security")
+
+        // Saying no at the prompt lands in the same place.
+        demo.eventAccess = .unknown
+        demo.promptAnswer = false
+        m.reload()
+        m.requestAccess()
+        spin { m.eventAccess != .unknown }
+        check(m.eventAccess == .denied, "saying no shows the Privacy & Security way")
+
+        demo.clearSaved()
+        fresh()
+        app.prefs.v.googleAutoPicked = true
+        m.stopWatching()
+        m.reload()
+        app.notch.hud = nil
     }
 
     static let scenes: [Render.Scene] = [

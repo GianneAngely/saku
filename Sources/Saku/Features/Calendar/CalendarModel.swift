@@ -36,6 +36,7 @@ struct CalList: Identifiable, Equatable {
     var account = ""
     var google = false
     var writable = true
+    var kind = CalSourceKind.other
 }
 
 /// A new event from the composer.
@@ -62,11 +63,17 @@ enum GoogleCalendar {
         return ([account] + calendarTitles).contains { t in hints.contains { t.lowercased().contains($0) } }
     }
 
-    static func openInternetAccounts() {
-        if !NSWorkspace.shared.open(settingsURL) {
+    static let privacyURL = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars")!
+
+    /// Opens a System Settings pane. Self tests swap this out so nothing opens on the real screen.
+    @MainActor static var open: (URL) -> Void = { url in
+        if !NSWorkspace.shared.open(url) {
             NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
         }
     }
+
+    @MainActor static func openInternetAccounts() { open(settingsURL) }
+    @MainActor static func openPrivacy() { open(privacyURL) }
 }
 
 /// Reminders saved as calendar events carry this line in their notes, and get a tick in the title once done.
@@ -115,7 +122,11 @@ enum QuickEvent {
     }
 }
 
-enum CalAccess: Equatable { case unknown, granted, denied }
+/// Calendar permission as Saku sees it. `addOnly` is macOS's "add events only" level, which can't read anything.
+enum CalAccess: Equatable { case unknown, granted, denied, addOnly }
+
+/// What kind of account a calendar comes from, for the status in Settings.
+enum CalSourceKind: Equatable { case google, icloud, local, exchange, subscribed, birthdays, other }
 
 /// Where events and reminders come from: EventKit, or a fixed demo set for QA.
 @MainActor
@@ -137,6 +148,8 @@ protocol CalendarSource: AnyObject {
     /// Open reminders Saku saved as events in one calendar.
     func reminderEvents(calendarID: String, from: Date, to: Date) -> [CalReminder]
     func setEventDone(_ id: String, _ done: Bool, alert: Double?)
+    /// Asks macOS to pull new accounts and calendars (a Google account added in System Settings).
+    func refresh()
 }
 
 /// Finds a meeting link (Zoom, Meet, Teams, Webex, FaceTime) in an event.
@@ -158,30 +171,49 @@ enum MeetingLink {
 
 @MainActor
 final class EventKitSource: CalendarSource {
-    private let store = EKEventStore()
+    private var store = EKEventStore()
 
     private func access(_ type: EKEntityType) -> CalAccess {
         switch EKEventStore.authorizationStatus(for: type) {
         case .fullAccess: .granted
         case .notDetermined: .unknown
+        case .writeOnly: .addOnly
         default: .denied
         }
+    }
+
+    /// A store made before access was granted can keep returning no calendars, so start a fresh one after the OK.
+    private func renew() { store = EKEventStore() }
+
+    func refresh() {
+        guard eventAccess == .granted else { return }
+        if store.sources.isEmpty { renew() }
+        store.refreshSourcesIfNecessary()
     }
 
     var eventAccess: CalAccess { access(.event) }
     var reminderAccess: CalAccess { access(.reminder) }
 
-    func requestEvents() async -> Bool { (try? await store.requestFullAccessToEvents()) ?? false }
-    func requestReminders() async -> Bool { (try? await store.requestFullAccessToReminders()) ?? false }
+    func requestEvents() async -> Bool {
+        let ok = (try? await store.requestFullAccessToEvents()) ?? false
+        if ok { renew() }
+        return ok
+    }
+
+    func requestReminders() async -> Bool {
+        let ok = (try? await store.requestFullAccessToReminders()) ?? false
+        if ok { renew() }
+        return ok
+    }
 
     func calendars() -> [CalList] {
         guard eventAccess == .granted else { return [] }
         let all = store.calendars(for: .event)
         return all.map { c in
             let titles = all.filter { $0.source == c.source }.map(\.title)
+            let google = GoogleCalendar.isGoogle(caldav: c.source.sourceType == .calDAV, account: c.source.title, calendarTitles: titles)
             return CalList(id: c.calendarIdentifier, title: c.title, color: Color(cgColor: c.cgColor), account: c.source.title,
-                           google: GoogleCalendar.isGoogle(caldav: c.source.sourceType == .calDAV, account: c.source.title, calendarTitles: titles),
-                           writable: c.allowsContentModifications)
+                           google: google, writable: c.allowsContentModifications, kind: Self.kind(c, google: google))
         }
     }
 
@@ -277,8 +309,22 @@ final class EventKitSource: CalendarSource {
         try? store.save(e, span: .thisEvent, commit: true)
     }
 
+    static func kind(_ c: EKCalendar, google: Bool) -> CalSourceKind {
+        if google { return .google }
+        switch c.type {
+        case .subscription: return .subscribed
+        case .birthday: return .birthdays
+        case .exchange: return .exchange
+        case .local: return .local
+        default: break
+        }
+        if c.source.sourceType == .local { return .local }
+        return c.source.title.lowercased().contains("icloud") ? .icloud : .other
+    }
+
+    /// Any store's change counts: the store is replaced after access is granted.
     func observe(_ change: @escaping @MainActor () -> Void) -> NSObjectProtocol {
-        NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: store, queue: .main) { _ in
+        NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: nil, queue: .main) { _ in
             MainActor.assumeIsolated { change() }
         }
     }
@@ -311,16 +357,30 @@ final class DemoCalendarSource: CalendarSource {
 
     var eventAccess = CalAccess.granted
     var reminderAccess = CalAccess.granted
-    func requestEvents() async -> Bool { true }
-    func requestReminders() async -> Bool { true }
+    /// What the fake permission prompt answers.
+    var promptAnswer = true
+    private(set) var refreshes = 0
+
+    func requestEvents() async -> Bool {
+        if eventAccess == .unknown { eventAccess = promptAnswer ? .granted : .denied }
+        return eventAccess == .granted
+    }
+
+    func requestReminders() async -> Bool {
+        if reminderAccess == .unknown { reminderAccess = promptAnswer ? .granted : .denied }
+        return reminderAccess == .granted
+    }
+
+    func refresh() { refreshes += 1 }
 
     func calendars() -> [CalList] {
-        var list = [CalList(id: "work", title: "Work", color: Theme.sky, account: "iCloud"),
-                    CalList(id: "home", title: "Personal", color: Theme.blossom, account: "iCloud")]
+        guard eventAccess == .granted else { return [] }
+        var list = [CalList(id: "work", title: "Work", color: Theme.sky, account: "iCloud", kind: .icloud),
+                    CalList(id: "home", title: "Personal", color: Theme.blossom, account: "iCloud", kind: .icloud)]
         if hasGoogle {
-            list += [CalList(id: "google", title: "name@gmail.com", color: Theme.mint, account: "name@gmail.com", google: true),
+            list += [CalList(id: "google", title: "name@gmail.com", color: Theme.mint, account: "name@gmail.com", google: true, kind: .google),
                      CalList(id: "google-holidays", title: "Holidays in Indonesia", color: Theme.butter, account: "name@gmail.com",
-                             google: true, writable: false)]
+                             google: true, writable: false, kind: .google)]
         }
         return list
     }
@@ -394,6 +454,8 @@ final class DemoCalendarSource: CalendarSource {
     func clearSaved() {
         saved = []
         hasGoogle = true
+        eventAccess = .granted
+        promptAnswer = true
     }
 }
 
@@ -420,6 +482,10 @@ final class CalendarModel {
     var draftTimed = true                    // reminders: false = no time, just the day
     var draftCalendarID = ""
     var draftAlert = 10.0                    // minutes before, -1 = none
+    /// True while Saku waits for a Google account to show up after opening Internet Accounts.
+    private(set) var connecting = false
+    @ObservationIgnored private var watch: Timer?
+    @ObservationIgnored private var watchUntil = Date.distantPast
 
     @ObservationIgnored let source: CalendarSource
     @ObservationIgnored private let app: AppModel
@@ -445,6 +511,10 @@ final class CalendarModel {
         upcoming = source.events(from: now.addingTimeInterval(-3600), to: cal.date(byAdding: .day, value: 2, to: today)!, calendars: ids)
         loadDay()
         loadMonth()
+        if !googleAccounts.isEmpty {
+            autoPickGoogle()
+            if connecting { stopWatching() }
+        }
         // Reminders saved as events update right away; Apple Reminders arrive a moment later.
         reminders = Self.merge(reminderAccess == .granted ? reminders.filter { $0.kind == .reminder } : [], reminderEventItems())
         if reminderAccess == .granted {
@@ -594,6 +664,7 @@ final class CalendarModel {
 
     func requestAccess() {
         Task { @MainActor in
+            activateForPrompt()
             _ = await source.requestEvents()
             reload()
         }
@@ -601,8 +672,110 @@ final class CalendarModel {
 
     func requestReminderAccess() {
         Task { @MainActor in
+            activateForPrompt()
             _ = await source.requestReminders()
             reload()
+        }
+    }
+
+    /// The permission prompt comes up in front of an active app; Saku is a menu bar app, so bring it forward first.
+    private func activateForPrompt() {
+        if !app.options.qa { NSApp.activate() }
+    }
+
+    /// Pulls in accounts added since launch (a Google account added in System Settings), then redraws.
+    func refreshSources() {
+        guard eventAccess == .granted else { return }
+        source.refresh()
+        reload()
+    }
+
+    // MARK: Connecting Google Calendar
+
+    /// One button: ask for Calendar access if it was never asked, open Internet Accounts when no Google account is
+    /// on the Mac yet, then watch until one appears. Denied access can only be turned on by the user in Privacy & Security.
+    func connectGoogle() {
+        Task { @MainActor in
+            if eventAccess == .unknown {
+                activateForPrompt()
+                _ = await source.requestEvents()
+                reload()
+            }
+            guard eventAccess == .granted else {
+                GoogleCalendar.openPrivacy()
+                return
+            }
+            refreshSources()
+            guard googleAccounts.isEmpty else { return }
+            GoogleCalendar.openInternetAccounts()
+            startWatching()
+        }
+    }
+
+    /// Checks every few seconds for a few minutes; the store's change notification usually wins first.
+    func startWatching(for seconds: TimeInterval = 240) {
+        connecting = true
+        watchUntil = Date().addingTimeInterval(seconds)
+        watch?.invalidate()
+        guard !app.options.qa else { return }
+        let t = Timer(timeInterval: 2.5, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if Date() > self.watchUntil { self.stopWatching(); return }
+                self.refreshSources()
+            }
+        }
+        RunLoop.main.add(t, forMode: .common)
+        watch = t
+    }
+
+    func stopWatching() {
+        watch?.invalidate()
+        watch = nil
+        connecting = false
+    }
+
+    /// The account's own calendar: Google names it after the address. Else the Mac's default if it's Google, else the first.
+    var primaryGoogleCalendar: CalList? {
+        let g = writableCalendars.filter(\.google)
+        if let own = g.first(where: { $0.title.contains("@") && $0.title == $0.account }) { return own }
+        if let own = g.first(where: { $0.title.contains("@") }) { return own }
+        if let d = source.defaultCalendarID(), let c = g.first(where: { $0.id == d }) { return c }
+        return g.first
+    }
+
+    /// The first time a Google calendar shows up, it becomes the home for new events and reminders, unless Angel
+    /// already picked something herself. Then a small "Connected" note in the notch.
+    func autoPickGoogle() {
+        let p = app.prefs
+        guard !p.v.googleAutoPicked, let g = primaryGoogleCalendar else { return }
+        let eventsUnset = calendar(p.v.newEventCalendarID)?.writable != true
+        let remindersUnset = p.v.reminderTarget == "reminders" ? p.v.reminderCalendarID.isEmpty : calendar(p.v.reminderCalendarID)?.writable != true
+        if eventsUnset { p.v.newEventCalendarID = g.id }
+        if remindersUnset {
+            p.v.reminderTarget = "calendar"
+            p.v.reminderCalendarID = g.id
+        }
+        p.v.googleAutoPicked = true
+        app.flash("checkmark.circle.fill", tr("Connected to Google Calendar"), tint: Theme.mint, seconds: 3.5)
+    }
+
+    /// "Google (name@gmail.com): 3 calendars", one line per account, for the status in Settings.
+    var sourceLines: [String] {
+        accounts.map { acc in
+            let cals = calendarList.filter { $0.account == acc }
+            let kind = cals.first?.kind ?? .other
+            let name: String
+            switch kind {
+            case .google: name = acc.lowercased() == "google" ? "Google" : "Google (\(acc))"
+            case .icloud: name = "iCloud"
+            case .local: name = tr("On this Mac")
+            case .exchange: name = "Exchange (\(acc))"
+            case .subscribed: name = tr("Subscribed")
+            case .birthdays: name = tr("Birthdays")
+            case .other: name = acc
+            }
+            return cals.count == 1 ? tr("%@: 1 calendar", name) : tr("%@: %d calendars", name, cals.count)
         }
     }
 
