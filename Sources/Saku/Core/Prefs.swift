@@ -100,6 +100,13 @@ struct PrefsData: Codable, Equatable {
     var waterUnit = "ml"                    // ml, oz, cups
     var waterReminder = 0.0                 // minutes between reminders, 0 = off
 
+    // Web
+    var webSearchEngine = "google"
+    var webMobile = true
+    var webZoom = 0.9
+    var webWidth = 720.0
+    var webHeight = 420.0
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
