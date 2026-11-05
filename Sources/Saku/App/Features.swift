@@ -23,6 +23,11 @@ enum Features {
         Secrets.inMemory = app.options.qa
         app.translate = TranslateModel(prefs: app.prefs)
         app.ai = AIModel(app: app)
+        app.mirror = MirrorModel(prefs: app.prefs)
+        // The camera never keeps running behind a closed notch.
+        observe(app, { _ = $0.notch.mode }) { if $0.notch.mode == .closed { $0.mirror.stop() } }
+        SelfTest.suites.append(("mirror", MirrorChecks.run))
+        Render.scenes += MirrorChecks.scenes
         SelfTest.suites.append(("ai", AIChecks.run))
         Render.scenes += AIChecks.scenes
         SelfTest.suites.append(("translate", TranslateChecks.run))
