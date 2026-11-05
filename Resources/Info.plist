@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key><string>Saku</string>
+  <key>CFBundleDisplayName</key><string>Saku</string>
+  <key>CFBundleIdentifier</key><string>local.saku.app</string>
+  <key>CFBundleExecutable</key><string>Saku</string>
+  <key>CFBundleIconFile</key><string>AppIcon</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>1.0</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>LSMinimumSystemVersion</key><string>26.0</string>
+  <key>LSUIElement</key><true/>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
+  <key>NSAppleEventsUsageDescription</key><string>Saku reads the current song from Spotify, Music or your browser and plays, pauses or skips it when you press its buttons.</string>
+  <key>NSCalendarsFullAccessUsageDescription</key><string>Saku shows today's events and counts down to your next meeting in the notch.</string>
+  <key>NSRemindersFullAccessUsageDescription</key><string>Saku shows your reminders in the notch so you can tick them off.</string>
+  <key>NSCameraUsageDescription</key><string>Saku shows a live mirror in the notch. The video never leaves your Mac and is never saved.</string>
+  <key>NSMicrophoneUsageDescription</key><string>The teleprompter listens to your voice to scroll the script as you speak. Audio stays on your Mac.</string>
+  <key>NSSpeechRecognitionUsageDescription</key><string>The teleprompter recognises your speech on this Mac to follow along with the script.</string>
+</dict>
+</plist>

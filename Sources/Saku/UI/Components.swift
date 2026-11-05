@@ -1,0 +1,203 @@
+import AppKit
+import SwiftUI
+
+/// Dark card used for every block inside the open notch.
+struct Card<Content: View>: View {
+    var padding: CGFloat = 12
+    var fill: Color = Theme.card
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        content
+            .padding(padding)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(fill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.stroke, lineWidth: 1))
+    }
+}
+
+/// Round icon button with a soft hover circle.
+struct IconButton: View {
+    var symbol: String
+    var size: CGFloat = 13
+    var tint: Color = Theme.text2
+    var hit: CGFloat = 26
+    var help: String = ""
+    var action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: size, weight: .semibold))
+                .foregroundStyle(hovering ? Theme.text : tint)
+                .frame(width: hit, height: hit)
+                .background(Circle().fill(Color.white.opacity(hovering ? 0.10 : 0)))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .help(help)
+    }
+}
+
+/// Capsule button. Primary is filled with the accent, secondary is a quiet outline.
+struct PillButton: View {
+    var title: String
+    var icon: String? = nil
+    var primary = false
+    var tint: Color = Theme.blossom
+    var compact = false
+    var action: () -> Void
+    @State private var hovering = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if let icon { Image(systemName: icon).font(.system(size: compact ? 9.5 : 10.5, weight: .bold)) }
+                Text(title).font(Theme.font(compact ? 10.5 : 11.5, .semibold)).lineLimit(1)
+            }
+            .foregroundStyle(primary ? Color.black.opacity(0.85) : (hovering ? Theme.text : Theme.text2))
+            .padding(.horizontal, compact ? 9 : 12)
+            .frame(height: compact ? 22 : 26)
+            .background(Capsule().fill(primary ? tint.opacity(hovering ? 1 : 0.92) : Color.white.opacity(hovering ? 0.12 : 0.07)))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+    }
+}
+
+/// Small grey label above a group.
+struct Caption: View {
+    var text: String
+    var body: some View {
+        Text(text).font(Theme.font(10.5, .semibold)).foregroundStyle(Theme.text3).lineLimit(1)
+    }
+}
+
+/// Thin rounded progress bar.
+struct ProgressTrack: View {
+    var value: Double
+    var tint: Color = Theme.blossom
+    var height: CGFloat = 4
+
+    var body: some View {
+        GeometryReader { g in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.white.opacity(0.1))
+                Capsule().fill(tint).frame(width: max(height, g.size.width * min(1, max(0, value))))
+            }
+        }
+        .frame(height: height)
+    }
+}
+
+/// Centred icon + text for empty lists and missing permissions.
+struct EmptyState<Actions: View>: View {
+    var icon: String
+    var title: String
+    var subtitle: String = ""
+    var tint: Color = Theme.blossom
+    @ViewBuilder var actions: Actions
+
+    var body: some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon).font(.system(size: 20, weight: .semibold)).foregroundStyle(tint)
+            Text(title).font(Theme.font(13, .semibold)).foregroundStyle(Theme.text)
+            if !subtitle.isEmpty {
+                Text(subtitle).font(Theme.font(11)).foregroundStyle(Theme.text2).multilineTextAlignment(.center).lineLimit(2)
+            }
+            actions.padding(.top, 2)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+extension EmptyState where Actions == EmptyView {
+    init(icon: String, title: String, subtitle: String = "", tint: Color = Theme.blossom) {
+        self.init(icon: icon, title: title, subtitle: subtitle, tint: tint) { EmptyView() }
+    }
+}
+
+/// Dark rounded text field that fits the notch.
+struct NotchField: View {
+    var placeholder: String
+    @Binding var text: String
+    var icon: String? = nil
+    var onSubmit: () -> Void = {}
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if let icon { Image(systemName: icon).font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.text3) }
+            TextField("", text: $text, prompt: Text(placeholder).foregroundStyle(Theme.text3))
+                .textFieldStyle(.plain)
+                .font(Theme.font(12))
+                .foregroundStyle(Theme.text)
+                .onSubmit(onSubmit)
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 28)
+        .background(Theme.cardHi, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+    }
+}
+
+/// Segmented switch in notch colours.
+struct Segments<T: Hashable>: View {
+    var items: [(T, String)]
+    @Binding var selection: T
+    var tint: Color = Theme.blossom
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(items, id: \.0) { item in
+                let on = item.0 == selection
+                Button { withAnimation(Theme.fade) { selection = item.0 } } label: {
+                    Text(item.1)
+                        .font(Theme.font(11, .semibold))
+                        .foregroundStyle(on ? Color.black.opacity(0.85) : Theme.text2)
+                        .padding(.horizontal, 10)
+                        .frame(height: 22)
+                        .background(Capsule().fill(on ? tint : Color.clear))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(2)
+        .background(Capsule().fill(Color.white.opacity(0.07)))
+    }
+}
+
+/// Files that ship in Contents/Resources (or the repo's Resources folder when run from `swift build`).
+enum AppResources {
+    static func url(_ name: String) -> URL? {
+        if let u = Bundle.main.resourceURL?.appendingPathComponent(name), FileManager.default.fileExists(atPath: u.path) { return u }
+        let repo = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("Resources/\(name)")
+        return FileManager.default.fileExists(atPath: repo.path) ? repo : nil
+    }
+
+    @MainActor static let mascot: NSImage? = url("mascot.png").flatMap(NSImage.init(contentsOf:))
+}
+
+/// Mascot's pixel avatar on a pink tile (from Angel's own art), crisp at any size.
+struct MascotTile: View {
+    var size: CGFloat = 64
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            RoundedRectangle(cornerRadius: size * 0.27, style: .continuous)
+                .fill(LinearGradient(colors: [Color(hex: 0xFFE4F0), Color(hex: 0xF4A6C8)], startPoint: .top, endPoint: .bottom))
+            if let img = AppResources.mascot {
+                // 66 pt = two device pixels per sprite pixel: crisp. Small marks scale down smoothly instead.
+                let art = size >= 60 ? 66 : size * 0.92
+                Image(nsImage: img).resizable().interpolation(size >= 60 ? .none : .high).frame(width: art, height: art)
+            } else {
+                Image(systemName: "cat.fill").font(.system(size: size * 0.45)).foregroundStyle(Theme.berry).padding(.bottom, size * 0.2)
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(RoundedRectangle(cornerRadius: size * 0.27, style: .continuous))
+    }
+}
