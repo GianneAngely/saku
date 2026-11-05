@@ -56,6 +56,7 @@ final class AppModel {
     var web: WebModel!
     var bookmarks: BookmarksModel!
     var translate: TranslateModel!
+    var ai: AIModel!
 
     /// Trackpad scrolling over the open notch (the teleprompter uses it).
     @ObservationIgnored var scrollHandler: ((CGFloat) -> Bool)?

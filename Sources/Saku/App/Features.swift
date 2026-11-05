@@ -22,6 +22,9 @@ enum Features {
         installWeb(app)
         Secrets.inMemory = app.options.qa
         app.translate = TranslateModel(prefs: app.prefs)
+        app.ai = AIModel(app: app)
+        SelfTest.suites.append(("ai", AIChecks.run))
+        Render.scenes += AIChecks.scenes
         SelfTest.suites.append(("translate", TranslateChecks.run))
         Render.scenes += TranslateChecks.scenes
     }
