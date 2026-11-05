@@ -63,6 +63,7 @@ final class AppModel {
     var hotkeys: HotkeyCenter!
     var tools: ToolsModel!
     var colors: ColorPickerModel!
+    var weather: WeatherModel!
 
     /// Trackpad scrolling over the open notch (the teleprompter uses it).
     @ObservationIgnored var scrollHandler: ((CGFloat) -> Bool)?

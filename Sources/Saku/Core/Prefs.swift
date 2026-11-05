@@ -134,6 +134,9 @@ struct PrefsData: Codable, Equatable {
 
     // Tools
     var colorFormat = "hex"                 // hex, rgb, hsl, swiftui
+    var weatherCity: City? = nil
+    var weatherOnHome = true
+    var weatherFahrenheit = false
 
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)

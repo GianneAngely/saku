@@ -86,6 +86,8 @@ enum CalendarChecks {
             app.notch.tab = .calendar
         },
         Render.Scene(name: "open-home-full", settle: 0.6) { app in
+            app.prefs.v.weatherCity = City(name: "Denpasar", region: "Bali, Indonesia", latitude: -8.65, longitude: 115.22)
+            app.weather.setDemo(WeatherNow(temp: 29, feels: 33, code: 2, isDay: true, high: 31, low: 25, fetched: Date()))
             (app.calendar.source as? DemoCalendarSource)?.eventAccess = .granted
             app.calendar.reload()
             app.notch.mode = .open
