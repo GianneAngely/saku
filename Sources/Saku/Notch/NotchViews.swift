@@ -118,7 +118,13 @@ struct ClosedWings: View {
         switch live {
         case .none: EmptyView()
         case .mark(let m):
-            if m == "mascot" && AppResources.mascot != nil { MascotTile(size: 20) } else { BlossomMark(size: 15) }
+            if m == "mascot" && AppResources.mascot != nil {
+                MascotTile(size: 20)
+            } else if let mark = AppResources.mark {
+                Image(nsImage: mark).resizable().interpolation(.high).frame(width: 19, height: 19)
+            } else {
+                BlossomMark(size: 15)
+            }
         case .date:
             Text(dateText).font(Theme.font(12, .semibold)).foregroundStyle(Color(hexString: app.prefs.v.dateColor) ?? Theme.text)
         case .hud(let h):
@@ -550,7 +556,8 @@ enum DropReader {
 
 // MARK: - Alert card
 
-/// Left side of an alert: your mascot picture when there is one, else the alert's own symbol on a soft tile.
+/// Left side of an alert: your mascot picture when there is one, else Saku's clay sakura on a soft tile
+/// (or the alert's own symbol if the picture is missing).
 struct AlertBadge: View {
     let alert: NotchAlert
     var size: CGFloat = 70
@@ -560,8 +567,14 @@ struct AlertBadge: View {
             MascotTile(size: size)
         } else {
             RoundedRectangle(cornerRadius: size * 0.27, style: .continuous)
-                .fill(alert.tint.opacity(0.18))
-                .overlay(Image(systemName: alert.icon).font(.system(size: size * 0.4, weight: .bold)).foregroundStyle(alert.tint))
+                .fill(LinearGradient(colors: [Color(hex: 0x3A2466), Color(hex: 0x5E2B6A)], startPoint: .top, endPoint: .bottom))
+                .overlay {
+                    if let mark = AppResources.mark {
+                        Image(nsImage: mark).resizable().interpolation(.high).padding(size * 0.12)
+                    } else {
+                        Image(systemName: alert.icon).font(.system(size: size * 0.4, weight: .bold)).foregroundStyle(alert.tint)
+                    }
+                }
                 .frame(width: size, height: size)
         }
     }

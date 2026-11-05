@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1
+
+- **New icon:** a soft clay sakura on a purple night sky, rendered in Blender. It also sits in the closed notch and on alert cards.
+- **Connecting Google Calendar is one step:** Connect asks for Calendar access once, opens Internet Accounts if needed, notices the Google account as soon as it appears, makes its main calendar the home for new events and reminders, and says "Connected". Settings › Calendar shows the permission, the accounts Saku can read and where new events go.
+- Permissions survive updates: builds keep the same signing requirement, so macOS doesn't ask again after every update.
+- Open source under the MIT License.
+
 ## 1.1.0
 
 - **Google Calendar**: connect it through macOS Internet Accounts (Settings › Calendar). Saku never sees your Google password.

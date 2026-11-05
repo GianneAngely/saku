@@ -255,6 +255,8 @@ enum AppResources {
     }()
 
     @MainActor static let appIcon: NSImage? = url("AppIcon.icns").flatMap(NSImage.init(contentsOf:))
+    /// The clay sakura from the app icon, for the closed notch and alert cards.
+    @MainActor static let mark: NSImage? = url("mark.png").flatMap(NSImage.init(contentsOf:))
 }
 
 /// The optional mascot picture on a pink tile, crisp at any size (pixel art stays sharp at 66 pt and up).
