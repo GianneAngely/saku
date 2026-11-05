@@ -25,8 +25,30 @@ enum TrackerChecks {
         m.addDay(title: "Far", date: now.addingTimeInterval(40 * 86400))
         m.addDay(title: "Near", date: now.addingTimeInterval(2 * 86400))
         check(m.sortedDays.map(\.title) == ["Near", "Far", "Past"], "soonest first, past at the end")
+        // Counters.
+        for c in m.counters { m.deleteCounter(c.id) }
+        let c = m.addCounter(title: "Push-ups", goal: 3, daily: true)
+        m.bump(c.id, by: 1)
+        m.bump(c.id, by: 1)
+        m.bump(c.id, by: -1)
+        m.bump(c.id, by: 1)
+        m.bump(c.id, by: 1)
+        check(m.counters[0].value == 3, "counter counts up and down")
+        check(app.notch.hud?.text == tr("%@ goal reached!", "Push-ups"), "goal reached flash")
+        app.notch.hud = nil
+        for _ in 0..<5 { m.bump(c.id, by: -1) }
+        check(m.counters[0].value == 0, "counter never goes below zero")
+        m.bump(c.id, by: 1)
+        m.rollOver(now: Date().addingTimeInterval(86400))
+        check(m.counters[0].value == 0, "daily counters reset on a new day")
+        let w = m.addCounter(title: "Pages", step: 5)
+        m.bump(w.id, by: 1)
+        m.rollOver(now: Date().addingTimeInterval(86400 * 2))
+        check(m.counters.first { $0.id == w.id }?.value == 5, "step size, and non-daily counters keep their value")
+
         m.saveNow()
-        check(JSONStore<TrackersSave>("trackers.json").load()?.daysLeft.count == 3, "trackers are saved")
+        let saved = JSONStore<TrackersSave>("trackers.json").load()
+        check(saved?.daysLeft.count == 3 && saved?.counters?.count == 2, "trackers are saved")
     }
 
     static let scenes: [Render.Scene] = [
@@ -46,5 +68,13 @@ enum TrackerChecks {
         m.addDay(title: "Bali trip", date: cal.date(byAdding: .day, value: 23, to: now)!, color: "#8CC8FF")
         m.addDay(title: "Grandma's birthday", date: cal.date(byAdding: .day, value: 79, to: now)!, yearly: true)
         m.addDay(title: "Started Saku", date: cal.date(byAdding: .day, value: -2, to: now)!, color: "#FFD66B")
+        for c in m.counters { m.deleteCounter(c.id) }
+        let a = m.addCounter(title: "Push-ups", goal: 30, step: 5, daily: true)
+        for _ in 0..<4 { m.bump(a.id, by: 1) }
+        let b = m.addCounter(title: "Pages read", goal: 50, daily: true, color: "#8CC8FF")
+        for _ in 0..<12 { m.bump(b.id, by: 1) }
+        let d = m.addCounter(title: "Game jam builds", color: "#C7A6FF")
+        for _ in 0..<7 { m.bump(d.id, by: 1) }
+        app.notch.hud = nil
     }
 }
