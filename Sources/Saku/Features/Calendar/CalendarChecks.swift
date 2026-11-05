@@ -251,7 +251,7 @@ enum CalendarChecks {
 
     static let scenes: [Render.Scene] = [
         Render.Scene(name: "open-calendar", settle: 0.5) { app in
-            app.calendar.select(Date())
+            app.calendar.select(app.calendar.now)
             app.calendar.showReminders = false
             app.notch.mode = .open
             app.notch.tab = .calendar

@@ -400,7 +400,7 @@ final class DemoCalendarSource: CalendarSource {
             CalEvent(id: "e0", title: "Morning standup", start: at(0, 9, 0), end: at(0, 9, 15), color: Theme.sky, calendar: "Work", calendarID: "work"),
             CalEvent(id: "e1", title: "Design review: Saku", start: now.addingTimeInterval(8 * 60), end: now.addingTimeInterval(53 * 60),
                      color: Theme.sky, location: "Google Meet", calendar: "Work", joinURL: URL(string: "https://meet.google.com/abc-defg-hij"), calendarID: "work"),
-            CalEvent(id: "e2", title: "Gym with Rei", start: at(0, 18, 30), end: at(0, 19, 30), color: Theme.blossom, location: "Kuta", calendar: "Personal", calendarID: "home"),
+            CalEvent(id: "e2", title: "Gym with Rei", start: at(0, 18, 30), end: at(0, 19, 30), color: Theme.blossom, location: "Studio", calendar: "Personal", calendarID: "home"),
             CalEvent(id: "e3", title: "SIM Jam results", start: at(6, 10, 0), end: at(6, 11, 0), color: Theme.blossom, calendar: "Personal", calendarID: "home"),
             CalEvent(id: "e4", title: "Thesis meeting", start: at(2, 13, 0), end: at(2, 14, 0), color: Theme.sky, calendar: "Work",
                      joinURL: URL(string: "https://us02web.zoom.us/j/123456789"), calendarID: "work"),

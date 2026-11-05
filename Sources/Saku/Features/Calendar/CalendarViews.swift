@@ -46,9 +46,9 @@ struct CalendarView: View {
     }
 
     private func dayTitle(_ d: Date) -> String {
-        let cal = Calendar.current
-        if cal.isDateInToday(d) { return tr("Today") }
-        if cal.isDateInTomorrow(d) { return tr("Tomorrow") }
+        let cal = Calendar.current, now = app.calendar.now
+        if cal.isDate(d, inSameDayAs: now) { return tr("Today") }
+        if cal.isDate(d, inSameDayAs: cal.date(byAdding: .day, value: 1, to: now)!) { return tr("Tomorrow") }
         let f = DateFormatter()
         f.locale = Lang.shared.isIndonesian ? Locale(identifier: "id_ID") : Locale(identifier: "en_US")
         f.setLocalizedDateFormatFromTemplate("EEEEdMMMM")
@@ -105,7 +105,7 @@ struct MonthGrid: View {
                 }
                 ForEach(days, id: \.self) { d in
                     let inMonth = cal.isDate(d, equalTo: m.month, toGranularity: .month)
-                    let today = cal.isDateInToday(d)
+                    let today = cal.isDate(d, inSameDayAs: m.now)
                     let sel = cal.isDate(d, inSameDayAs: m.selectedDay)
                     Button { m.select(d) } label: {
                         VStack(spacing: 1) {
@@ -312,9 +312,9 @@ struct DayStepper: View {
     }
 
     private func label(_ d: Date) -> String {
-        let cal = Calendar.current
-        if cal.isDateInToday(d) { return tr("Today") }
-        if cal.isDateInTomorrow(d) { return tr("Tomorrow") }
+        let cal = Calendar.current, now = app.calendar.now
+        if cal.isDate(d, inSameDayAs: now) { return tr("Today") }
+        if cal.isDate(d, inSameDayAs: cal.date(byAdding: .day, value: 1, to: now)!) { return tr("Tomorrow") }
         let f = DateFormatter()
         f.locale = Lang.shared.isIndonesian ? Locale(identifier: "id_ID") : Locale(identifier: "en_US")
         f.setLocalizedDateFormatFromTemplate("EEEdMMM")
