@@ -42,7 +42,7 @@ struct WebTab: View {
 @MainActor
 enum WebToolbarExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        BookmarkStar(app: app)
     }
 }
 
@@ -73,7 +73,7 @@ struct WebStartPage: View {
 @MainActor
 enum WebStartExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        BookmarkGrid(app: app)
     }
 }
 
@@ -110,6 +110,6 @@ struct WebPane: View {
 @MainActor
 enum WebPaneExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        BookmarksSection(app: app)
     }
 }

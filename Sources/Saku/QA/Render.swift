@@ -41,7 +41,7 @@ enum Render {
         for scene in scenes where only == nil || only!.contains(where: { scene.name.hasPrefix($0) }) {
             reset(app)
             scene.setup(app)
-            let height = max(app.prefs.v.openHeight, NotchController.alertSize.height) + NotchController.margin
+            let height = app.maxPanelSize.height + NotchController.margin
             let size = CGSize(width: g.screenFrame.width, height: height)
             let view = Strip(app: app, height: height)
             if let rep = snapshot(view, size: size, settle: scene.settle) {
@@ -109,7 +109,7 @@ enum Render {
 
         var body: some View {
             let g = app.notch.geo
-            let canvasW = max(app.prefs.v.openWidth, NotchController.alertSize.width) + 2 * NotchController.margin
+            let canvasW = app.maxPanelSize.width + 2 * NotchController.margin
             ZStack(alignment: .topLeading) {
                 Backdrop(geo: g, height: height)
                 NotchRootView(app: app, controller: nil)
