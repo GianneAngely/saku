@@ -24,6 +24,9 @@ enum Features {
         app.translate = TranslateModel(prefs: app.prefs)
         app.ai = AIModel(app: app)
         app.mirror = MirrorModel(prefs: app.prefs)
+        app.launcher = LauncherModel()
+        SelfTest.suites.append(("apps", AppsChecks.run))
+        Render.scenes += AppsChecks.scenes
         // The camera never keeps running behind a closed notch.
         observe(app, { _ = $0.notch.mode }) { if $0.notch.mode == .closed { $0.mirror.stop() } }
         SelfTest.suites.append(("mirror", MirrorChecks.run))
