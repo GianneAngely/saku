@@ -75,6 +75,24 @@ enum FinderChecks {
         check(Set(specs).count == specs.count, "default shortcuts don't clash")
     }
 
+    /// On the real panel: All features gets its bigger page, and a feature lands on its tab at the normal size.
+    static func live(_ app: AppModel, _ c: NotchController) async {
+        c.open(.home)
+        app.notch.pinned = true
+        app.toggleFinder()
+        await LiveTest.wait(0.4)
+        let big = c.interactiveRect.size
+        LiveTest.expect(app.notch.finder && abs(big.width - app.finderSize.width) < 0.5 && abs(big.height - app.finderSize.height) < 0.5,
+                        "All features opens a bigger page", "\(big)")
+        FeatureCatalog.all.first { $0.id == "battery" }?.go(app)
+        await LiveTest.wait(0.4)
+        LiveTest.expect(app.notch.tab == .system && app.notch.highlight == "battery" && abs(c.interactiveRect.height - app.prefs.v.openHeight) < 0.5,
+                        "a feature opens on its tab with its card lit")
+        c.close()
+        await LiveTest.wait(0.3)
+        LiveTest.expect(!app.notch.finder && app.notch.highlight == nil, "closing clears the page and the light")
+    }
+
     static let scenes: [Render.Scene] = [
         Render.Scene(name: "open-finder", settle: 0.6) { app in
             app.notch.mode = .open
