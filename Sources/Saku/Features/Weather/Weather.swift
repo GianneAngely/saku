@@ -201,6 +201,6 @@ struct ToolsPane: View {
 @MainActor
 enum ToolsPaneExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        EyeBreakSection(app: app)
     }
 }

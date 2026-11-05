@@ -137,6 +137,8 @@ struct PrefsData: Codable, Equatable {
     var weatherCity: City? = nil
     var weatherOnHome = true
     var weatherFahrenheit = false
+    var eyeBreakEvery = 0.0                 // minutes of screen time, 0 = off
+    var eyeBreakSkipFocus = true
 
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
