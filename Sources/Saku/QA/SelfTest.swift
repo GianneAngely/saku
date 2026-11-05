@@ -52,6 +52,11 @@ enum SelfTest {
         check(tr("Settings") == "Settings", "english passthrough")
         Lang.shared.code = "id"
         check(tr("zz unknown zz") == "zz unknown zz", "missing translation falls back")
+        check(tr("Settings") == "Pengaturan" && Tab.home.title == "Beranda" && tr("%d words", 5) == "5 kata", "Bahasa Indonesia")
+        check(Indonesian.table.values.allSatisfy { v in
+            !v.split(whereSeparator: { ".!?\n".contains($0) }).contains { $0.trimmingCharacters(in: .whitespaces).lowercased().hasPrefix("yang ") }
+        }, "no Indonesian sentence starts with Yang")
+        check(Indonesian.table.count > 500, "Indonesian covers the whole app")
         Lang.shared.code = before
 
         // Colours.

@@ -103,9 +103,10 @@ struct MinuteStepper: View {
             stepButton("minus") { value = max(range.lowerBound, value - step) }
             VStack(spacing: -1) {
                 Text("\(Int(value))\(unit)").font(Theme.mono(11.5, .bold)).foregroundStyle(Theme.text)
-                Text(title).font(Theme.font(9, .semibold)).foregroundStyle(Theme.text3)
+                Text(title).font(Theme.font(9, .semibold)).foregroundStyle(Theme.text3).lineLimit(1).minimumScaleFactor(0.75)
             }
             .frame(minWidth: 38)
+            .layoutPriority(1)
             stepButton("plus") { value = min(range.upperBound, value + step) }
         }
         .padding(.horizontal, 2)

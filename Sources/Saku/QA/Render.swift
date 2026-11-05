@@ -74,7 +74,9 @@ enum Render {
     }
 
     static func reset(_ app: AppModel) {
+        let lang = ProcessInfo.processInfo.environment["SAKU_RENDER_LANG"] ?? "en"
         app.prefs.v = PrefsData()
+        app.prefs.v.language = lang
         app.prefs.v.onboarded = true
         app.prefs.v.hiddenTabs = []
         app.notch.mode = .closed
