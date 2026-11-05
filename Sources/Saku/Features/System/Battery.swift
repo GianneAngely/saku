@@ -225,7 +225,7 @@ struct SystemView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            BatteryCard(app: app).frame(width: 200)
+            BatteryCard(app: app).frame(width: 200).spotlight(app, "battery")
             SystemExtras.view(app: app)
         }
         .onAppear { if !Render.active { app.monitor?.setVisible(true) } }
@@ -236,8 +236,8 @@ struct SystemView: View {
 @MainActor
 enum SystemExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        NetworkCard(app: app)
-        CPUMemoryCard(app: app).frame(width: 190)
+        NetworkCard(app: app).spotlight(app, "network")
+        CPUMemoryCard(app: app).frame(width: 190).spotlight(app, "cpu")
     }
 }
 

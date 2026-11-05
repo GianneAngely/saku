@@ -129,8 +129,25 @@ final class AppModel {
     }
 
     func select(_ tab: Tab) {
+        notch.finder = false
         notch.tab = tab
         if prefs.v.lastTab != tab.rawValue { prefs.v.lastTab = tab.rawValue }
+    }
+
+    func toggleFinder() {
+        notch.highlight = nil
+        notch.finder.toggle()
+    }
+
+    /// Opens the notch on a tab and makes one card glow briefly (from All features or the menu bar).
+    func show(_ tab: Tab, spotlight: String? = nil) {
+        commands.openNotch(tab)
+        select(tab)
+        notch.highlight = spotlight
+        guard let spotlight else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) { [weak self] in
+            MainActor.assumeIsolated { if self?.notch.highlight == spotlight { self?.notch.highlight = nil } }
+        }
     }
 
     /// Brief message in the closed notch.
@@ -176,16 +193,21 @@ final class AppModel {
 
     var openSize: CGSize {
         if prompter?.live == true { return prompterSize }
+        if notch.finder && notch.mode == .open { return finderSize }
         if notch.tab == .web && notch.mode == .open { return CGSize(width: max(prefs.v.openWidth, prefs.v.webWidth), height: max(prefs.v.openHeight, prefs.v.webHeight)) }
         return CGSize(width: prefs.v.openWidth, height: prefs.v.openHeight)
     }
 
     var prompterSize: CGSize { CGSize(width: prefs.v.prompterWidth, height: notch.geo.notchH + prefs.v.prompterHeight) }
 
+    /// All features gets a little more room than a tab, so most of the list shows without scrolling.
+    var finderSize: CGSize { CGSize(width: max(prefs.v.openWidth, 700), height: max(prefs.v.openHeight, 330)) }
+
     /// Largest thing the panel ever shows, so the transparent window is created big enough once.
     var maxPanelSize: CGSize {
-        CGSize(width: max(prefs.v.openWidth, prefs.v.prompterWidth, prefs.v.webWidth, NotchController.alertSize.width),
-               height: max(prefs.v.openHeight, notch.geo.notchH + prefs.v.prompterHeight, prefs.v.webHeight, NotchController.alertSize.height))
+        CGSize(width: max(prefs.v.openWidth, prefs.v.prompterWidth, prefs.v.webWidth, finderSize.width, NotchController.alertSize.width),
+               height: max(prefs.v.openHeight, notch.geo.notchH + prefs.v.prompterHeight, prefs.v.webHeight, finderSize.height,
+                           NotchController.alertSize.height))
     }
 }
 

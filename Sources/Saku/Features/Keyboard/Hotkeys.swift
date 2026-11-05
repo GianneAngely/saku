@@ -77,7 +77,7 @@ struct HotkeySpec: Codable, Equatable, Hashable {
 /// Things a shortcut can do.
 enum HotkeyAction: String, CaseIterable, Codable, Identifiable {
     case toggle, home, tray, clipboard, timers, notes, prompter, calendar, trackers, web, translate, ai, camera, apps, system, tools
-    case pomodoro, prompterPlay, pin
+    case features, pomodoro, prompterPlay, pin
     case prompterFaster, prompterSlower, prompterBack
 
     var id: String { rawValue }
@@ -85,6 +85,7 @@ enum HotkeyAction: String, CaseIterable, Codable, Identifiable {
     var title: String {
         switch self {
         case .toggle: tr("Open or close Saku")
+        case .features: tr("All features: find anything")
         case .pomodoro: tr("Start or pause the Pomodoro")
         case .prompterPlay: tr("Teleprompter: start, play or pause")
         case .pin: tr("Keep the notch open")
@@ -103,6 +104,7 @@ enum HotkeyAction: String, CaseIterable, Codable, Identifiable {
     /// Defaults chosen to stay clear of window managers like Rectangle (which use ⌃⌥ with arrows and U I J K D F G E T C).
     static let defaults: [String: HotkeySpec] = [
         "toggle": HotkeySpec(keyCode: kVK_Space, mods: controlKey | optionKey),
+        "features": HotkeySpec(keyCode: kVK_ANSI_Slash, mods: controlKey | optionKey),
         "clipboard": HotkeySpec(keyCode: kVK_ANSI_V, mods: controlKey | optionKey),
         "tray": HotkeySpec(keyCode: kVK_ANSI_B, mods: controlKey | optionKey),
         "ai": HotkeySpec(keyCode: kVK_ANSI_A, mods: controlKey | optionKey),

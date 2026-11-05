@@ -157,7 +157,7 @@ struct TabsPane: View {
             } header: {
                 Text(tr("Tabs in the notch"))
             } footer: {
-                Text(tr("Drag to reorder. The first half sits left of the camera, the rest on the right."))
+                Text(tr("Drag to reorder. The first half sits left of the camera, the rest on the right. Tabs that don't fit, and every feature inside them, are in All features: the grid button in the notch."))
             }
         }
         .formStyle(.grouped)

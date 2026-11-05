@@ -96,6 +96,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func showSettings(_ pane: String?) {
+        guard !options.selfTest else { return }   // self tests stay silent: no windows, no Dock icon
         if settings == nil {
             settings = SettingsWindowController(app: app) { [weak self] in
                 DispatchQueue.main.async { self?.applyChrome() }

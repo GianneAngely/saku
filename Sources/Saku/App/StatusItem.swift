@@ -16,6 +16,16 @@ final class StatusItemController: NSObject {
         item.button?.toolTip = "Saku"
         let menu = NSMenu()
         menu.addItem(withTitle: tr("Open Saku"), action: #selector(openNotch), keyEquivalent: "").target = self
+        let all = NSMenuItem(title: tr("All features"), action: nil, keyEquivalent: "")
+        let sub = NSMenu()
+        for f in FeatureCatalog.all {
+            let item = ClosureMenuItem(title: f.title) { [weak app] in if let app { f.go(app) } }
+            item.image = NSImage(systemSymbolName: f.icon, accessibilityDescription: nil)
+            item.toolTip = f.place
+            sub.addItem(item)
+        }
+        all.submenu = sub
+        menu.addItem(all)
         menu.addItem(withTitle: tr("Settings…"), action: #selector(openSettings), keyEquivalent: ",").target = self
         menu.addItem(.separator())
         menu.addItem(withTitle: tr("Quit Saku"), action: #selector(quit), keyEquivalent: "q").target = self
@@ -23,6 +33,21 @@ final class StatusItemController: NSObject {
     }
 
     func remove() { NSStatusBar.system.removeStatusItem(item) }
+
+    /// Menu item that runs a closure.
+    final class ClosureMenuItem: NSMenuItem {
+        private let run: () -> Void
+
+        init(title: String, run: @escaping () -> Void) {
+            self.run = run
+            super.init(title: title, action: #selector(fire), keyEquivalent: "")
+            target = self
+        }
+
+        required init(coder: NSCoder) { fatalError("not used") }
+
+        @objc private func fire() { run() }
+    }
 
     @objc private func openNotch() { notch?.open() }
     @objc private func openSettings() { app.commands.openSettings(nil) }

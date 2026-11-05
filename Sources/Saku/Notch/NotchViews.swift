@@ -355,10 +355,13 @@ struct OpenPanel: View {
 
     private var panel: some View {
         VStack(spacing: 0) {
-            TabBar(app: app)
+            TabBar(app: app).zIndex(1)
             Group {
                 if app.notch.mode == .drop {
                     DropTargets(app: app)
+                } else if app.notch.finder {
+                    FeatureFinder(app: app)
+                        .transition(.opacity.animation(Theme.fade))
                 } else {
                     TabContent(app: app, tab: app.notch.tab)
                         .id(app.notch.tab)
@@ -385,7 +388,7 @@ struct TabBar: View {
     }
 
     static let iconWidth = 27.0
-    static let toolsWidth = 60.0       // divider, pin and settings on the right
+    static let toolsWidth = 87.0       // All features, divider, pin and settings on the right
 
     static func layout(tabs: [Tab], panelWidth: Double, notchWidth: Double) -> Layout {
         let side = (panelWidth - notchWidth - 20 - 32) / 2
@@ -395,9 +398,8 @@ struct TabBar: View {
             let half = min(capL, (tabs.count + 1) / 2)
             return Layout(left: Array(tabs.prefix(half)), right: Array(tabs.dropFirst(half)), more: [])
         }
-        let right = max(0, capR - 1)
-        return Layout(left: Array(tabs.prefix(capL)), right: Array(tabs.dropFirst(capL).prefix(right)),
-                      more: Array(tabs.dropFirst(capL + right)))
+        return Layout(left: Array(tabs.prefix(capL)), right: Array(tabs.dropFirst(capL).prefix(capR)),
+                      more: Array(tabs.dropFirst(capL + capR)))
     }
 
     var body: some View {
@@ -412,7 +414,7 @@ struct TabBar: View {
             HStack(spacing: 0) {
                 Spacer(minLength: 0)
                 ForEach(l.right) { TabIcon(app: app, tab: $0) }
-                if !l.more.isEmpty { MoreTabs(app: app, tabs: l.more) }
+                FinderButton(app: app, lit: l.more.contains(app.notch.tab) && app.notch.mode == .open)
                 Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 14).padding(.horizontal, 5)
                 IconButton(symbol: app.notch.pinned ? "pin.fill" : "pin", size: 11.5,
                            tint: app.notch.pinned ? Theme.blossom : Theme.text3, hit: 24, help: tr("Keep open")) {
@@ -429,35 +431,13 @@ struct TabBar: View {
     }
 }
 
-/// Tabs that did not fit, in a small menu.
-struct MoreTabs: View {
-    let app: AppModel
-    let tabs: [Tab]
-
-    var body: some View {
-        let on = tabs.contains(app.notch.tab)
-        Menu {
-            ForEach(tabs) { t in
-                Button { withAnimation(Theme.fade) { app.select(t) } } label: { Label(t.title, systemImage: t.icon) }
-            }
-        } label: {
-            Image(systemName: "ellipsis.circle.fill").font(.system(size: 12.5, weight: .semibold))
-                .foregroundStyle(on ? Theme.blossom : Theme.text3)
-        }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .frame(width: TabBar.iconWidth, height: 24)
-        .help(tr("More"))
-    }
-}
-
 struct TabIcon: View {
     let app: AppModel
     let tab: Tab
     @State private var hovering = false
 
     var body: some View {
-        let on = app.notch.tab == tab && app.notch.mode == .open
+        let on = app.notch.tab == tab && app.notch.mode == .open && !app.notch.finder
         Button { withAnimation(Theme.fade) { app.select(tab) } } label: {
             Image(systemName: tab.icon)
                 .font(.system(size: 12.5, weight: .semibold))
@@ -469,7 +449,8 @@ struct TabIcon: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering = $0 }
-        .help(tab.title)
+        .overlay(alignment: .bottom) { if hovering { TabLabel(text: tab.title) } }
+        .zIndex(hovering ? 2 : 0)
     }
 }
 

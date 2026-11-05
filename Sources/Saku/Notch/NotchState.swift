@@ -148,8 +148,15 @@ struct TimerDisplay: Equatable {
 
 @MainActor @Observable
 final class NotchState {
-    var mode: NotchMode = .closed
+    var mode: NotchMode = .closed {
+        didSet { if mode == .closed { finder = false; finderQuery = ""; highlight = nil } }
+    }
     var tab: Tab = .home
+    /// The All features page shows instead of a tab.
+    var finder = false
+    var finderQuery = ""
+    /// Card that glows for a moment after jumping there from All features ("battery", "water"...).
+    var highlight: String?
     var pinned = false
     var geo: NotchGeo = .fallback
     var hidden = false                 // full screen, mirroring or a notchless screen set to "hidden"

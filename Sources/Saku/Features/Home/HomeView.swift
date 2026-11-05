@@ -32,10 +32,10 @@ struct HomeView: View {
     var body: some View {
         HStack(spacing: 10) {
             if app.prefs.v.musicOnHome, app.music != nil {
-                MusicCard(app: app)
-                TodayCard(app: app).frame(width: 214)
+                MusicCard(app: app).spotlight(app, "music")
+                TodayCard(app: app).frame(width: 214).spotlight(app, "weather")
             } else {
-                TodayCard(app: app).frame(width: 210)
+                TodayCard(app: app).frame(width: 210).spotlight(app, "weather")
                 GlanceColumn(app: app)
             }
         }

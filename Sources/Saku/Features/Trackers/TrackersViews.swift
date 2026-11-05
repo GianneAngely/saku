@@ -6,7 +6,7 @@ struct TrackersView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            DaysLeftColumn(app: app)
+            DaysLeftColumn(app: app).spotlight(app, "days")
             TrackerExtras.view(app: app)
         }
     }
@@ -16,8 +16,8 @@ struct TrackersView: View {
 @MainActor
 enum TrackerExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        CountersColumn(app: app)
-        WaterColumn(app: app).frame(width: 160)
+        CountersColumn(app: app).spotlight(app, "counters")
+        WaterColumn(app: app).frame(width: 160).spotlight(app, "water")
     }
 }
 

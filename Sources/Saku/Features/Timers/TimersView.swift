@@ -147,13 +147,12 @@ struct MinuteStepper: View {
         HStack(spacing: 0) {
             stepButton("minus") { value = max(range.lowerBound, value - step) }
             VStack(spacing: -1) {
-                Text("\(Int(value))\(unit)").font(Theme.mono(11.5, .bold)).foregroundStyle(Theme.text)
+                Text("\(Int(value))\(unit)").font(Theme.mono(11.5, .bold)).foregroundStyle(Theme.text).lineLimit(1).minimumScaleFactor(0.8)
                 if !title.isEmpty {
-                    Text(title).font(Theme.font(9, .semibold)).foregroundStyle(Theme.text3).lineLimit(1).minimumScaleFactor(0.75)
+                    Text(title).font(Theme.font(9, .semibold)).foregroundStyle(Theme.text3).lineLimit(1).minimumScaleFactor(0.7)
                 }
             }
-            .frame(minWidth: 34)
-            .layoutPriority(1)
+            .frame(width: 34)
             stepButton("plus") { value = min(range.upperBound, value + step) }
         }
         .padding(.horizontal, 2)
