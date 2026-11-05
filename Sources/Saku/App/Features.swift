@@ -8,6 +8,23 @@ enum Features {
         Sound.muted = app.options.mute
         installMusic(app)
         installTimers(app)
+        installTray(app)
+    }
+
+    static func installTray(_ app: AppModel) {
+        app.tray = TrayModel(prefs: app.prefs)
+        app.dropHandlers[.tray] = { [weak app] payload in
+            guard let app else { return }
+            let n = app.tray.add(payload)
+            guard n > 0 else { return }
+            if app.prefs.v.trayOpenAfterDrop {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { MainActor.assumeIsolated { app.commands.openNotch(.tray) } }
+            } else {
+                app.flash("tray.and.arrow.down.fill", tr("Added %d to Tray", n))
+            }
+        }
+        SelfTest.suites.append(("tray", TrayChecks.run))
+        Render.scenes += TrayChecks.scenes
     }
 
     static func installTimers(_ app: AppModel) {

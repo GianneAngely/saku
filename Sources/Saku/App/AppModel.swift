@@ -45,6 +45,7 @@ final class AppModel {
     // Feature models (created in Features.install).
     var music: MusicModel!
     var timers: TimersModel!
+    var tray: TrayModel!
 
     @ObservationIgnored private var hudClear: DispatchWorkItem?
     @ObservationIgnored private var alertClear: DispatchWorkItem?

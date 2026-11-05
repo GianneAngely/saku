@@ -50,6 +50,10 @@ struct PrefsData: Codable, Equatable {
     var timerVolume = 0.7
     var timerAlert = true
 
+    // Tray
+    var trayCopyFiles = false
+    var trayOpenAfterDrop = false
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
