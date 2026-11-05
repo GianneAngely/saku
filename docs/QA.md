@@ -11,19 +11,19 @@ Everything here runs from the real binary, silently: no sound, no music playback
 | --- | --- | --- | --- | --- |
 | Notch shell: hover, close delay, pin, click-through, alerts, HUD, tab bar overflow | 27 (core) | 26 checks: panel level and position, hover delay, quick passes, leave to close, pin, alert size and auto-dismiss | closed, open, alert | Glass panel look (offscreen pictures can't draw glass) |
 | Keyboard shortcuts | 15 | 6 checks: opens on a tab, stays while the pointer is away, toggles closed, takes and returns the keyboard | — | — |
-| Music: Spotify, Music, live activity, covers, seek | 24 (demo player, real Spotify and Music payloads) | — | closed bars, home card, paused, cover background | Real Spotify/Music control needs Angel's Automation OK and playback; AppleScript terms checked against both apps' scripting dictionaries |
+| Music: Spotify, Music, live activity, covers, seek | 24 (demo player, real Spotify and Music payloads) | — | closed bars, home card, paused, cover background | Real Spotify/Music control needs your Automation OK and playback; AppleScript terms checked against both apps' scripting dictionaries |
 | Browser music | parsing, scripts | 5 checks: the page script reads Media Session metadata, picks the largest cover, presses Next, skips pages without media (in WebKit) | — | Chrome/Safari need "Allow JavaScript from Apple Events", left untouched |
 | Pomodoro, countdown, stopwatch | 37 | — | ring in the notch, three tabs, alert | Chime is never played in QA (file checked) |
 | Tray, AirDrop, text from image | 20 + 7 + 4 | — | tray, empty tray, drop targets | A real drag gesture and the AirDrop sheet (sender faked) |
 | Clipboard and snippets | 24 (private pasteboard) | — | history, snippets | — |
 | Notes | 9 | — | notes | — |
-| Teleprompter, voice follow | 32 (layout, speech matching, speed, end, language) | 5 checks: opens, hidden from screen sharing, prompter size, stays open, sharing restored | editor, reading, countdown, mirror | Voice follow with a real microphone (needs Angel's permission) |
+| Teleprompter, voice follow | 32 (layout, speech matching, speed, end, language) | 5 checks: opens, hidden from screen sharing, prompter size, stays open, sharing restored | editor, reading, countdown, mirror | Voice follow with a real microphone (needs your permission) |
 | Calendar and reminders | 19 (demo calendar) | — | month view, reminders, Home events, meeting countdown, access prompt | Real events need Calendar permission |
 | Battery, network, CPU, memory | 11 + 11 (real counters) | — | charging flash, System tab | — |
 | Days left, counters, water | 24 | — | Trackers tab | — |
 | Web and bookmarks | 16 | 3 checks: renders a page, snapshot, taller Web tab | start page | — |
 | Translate | 11 (real on-device English to Japanese) | — | Translate tab | English to Indonesian needs a one-time language download (button in Settings) |
-| AI assistant | 14 (real on-device Apple Intelligence reply, Claude stream and body, Gemini) | — | AI tab | Claude and Gemini need Angel's keys |
+| AI assistant | 14 (real on-device Apple Intelligence reply, Claude stream and body, Gemini) | — | AI tab | Claude and Gemini need your keys |
 | Mirror | 4 | — | Mirror tab | Camera needs permission |
 | Apps and Shortcuts, focus hooks | 12 + 1 (fake `shortcuts` tool) | — | Apps tab | — |
 | Calculator, colour picker, weather, eye breaks | 27 + 6 + 6 | — | Tools tab, Home weather | The screen colour loupe (system UI) |
