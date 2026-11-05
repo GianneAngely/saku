@@ -25,30 +25,38 @@ Kenapa harus bikin sendiri? Saku tidak punya server dan tidak membawa kunci Goog
 4. **Contact information**: email kamu. Centang persetujuan, lalu **Create**.
 5. Buka <https://console.cloud.google.com/auth/scopes> (Data Access) › **Add or remove scopes**, cari `Google Tasks API`, centang `.../auth/tasks`, lalu **Update** dan **Save**.
 
-## 4. Publish ke In production
+## 4. Pilih mode: In production atau Testing
 
-Biar sekali masuk langsung awet, aplikasimu perlu status **In production**. Google baru mengizinkan **Publish app** kalau Branding sudah berisi home page, privacy policy, dan domainnya. Saku sudah punya halaman-halaman itu di <https://gianneangely.github.io/saku-site/>, jadi tinggal diisi.
-
-1. Buka <https://console.cloud.google.com/auth/branding>.
-2. Di **Authorized domains** klik **Add domain**, isi `gianneangely.github.io`. Isi ini dulu, sebelum link-link di bawah.
-3. Isi bagian **App domain**:
-   - **Application home page**: `https://gianneangely.github.io/saku-site/`
-   - **Application privacy policy link**: `https://gianneangely.github.io/saku-site/privacy.html`
-   - **Application terms of service link**: `https://gianneangely.github.io/saku-site/terms.html`
-4. **App logo** biarkan kosong, karena logo membuat Google mewajibkan verifikasi. Klik **Save**.
-5. Buka <https://console.cloud.google.com/auth/audience>, klik **Publish app** › **Confirm**.
-
-Setelah itu muncul banner "Your app requires verification". Biarkan saja dan tidak usah ajukan verifikasi, karena untuk dipakai sendiri tidak perlu. Akibatnya cuma dua: saat masuk ada layar peringatan (langkah 7), dan aplikasimu dibatasi 100 pengguna.
+Buka <https://console.cloud.google.com/auth/audience>.
 
 | | In production (tanpa verifikasi) | Testing |
 | --- | --- | --- |
-| Syarat | Branding di atas | Email-mu di **Test users** |
+| Syarat | **Branding** lengkap: home page, privacy policy, dan authorized domain milikmu sendiri | Email-mu di **Test users** |
 | Siapa yang bisa masuk | Akun Google mana pun (maksimal 100 orang) | Cuma akun di **Test users** (maksimal 100) |
 | Masa berlaku izin di Saku | Awet sampai kamu mencabutnya | **Habis 7 hari** setelah kamu masuk |
 
-**Tidak mau Publish?** Biarkan di Testing: di bagian **Test users** klik **Add users**, masukkan email Google-mu, lalu **Save**. Izinnya habis 7 hari setelah kamu masuk, lalu Pengaturan › To-do menulis **Google minta kamu masuk lagi**. Tugasmu tetap aman: salinannya ada di Mac, dan perubahan selama itu ikut terkirim begitu kamu masuk lagi.
+Punya halaman web sendiri? Pakai **In production**: sekali masuk, awet. Belum punya? Pakai **Testing**, lalu masuk lagi tiap 7 hari.
+
+### In production
+
+Google baru mengizinkan **Publish app** kalau Branding sudah berisi home page, privacy policy, dan domainnya. Semuanya harus milikmu sendiri, karena authorized domain terdaftar per project dan kamu pengelola aplikasi di project-mu. Jadi jangan pakai alamat situs Saku: alamat itu cuma untuk project pembuat Saku.
+
+1. Siapkan dua halaman di domain milikmu, misalnya gratis di GitHub Pages: beranda yang menjelaskan aplikasinya, dan kebijakan privasi yang menjelaskan cara data Google Tasks dipakai. Sebagai contoh, lihat [kebijakan privasi Saku](https://gianneangely.github.io/saku-site/id/privacy.html).
+2. Buka <https://console.cloud.google.com/auth/branding>. Di **Authorized domains** klik **Add domain**, lalu isi domainmu. Isi ini dulu, sebelum link-link di bawah.
+3. Isi **Application home page** dan **Application privacy policy link** dengan alamat dua halaman tadi. **Application terms of service link** boleh diisi kalau kamu punya.
+4. **App logo** biarkan kosong, karena logo membuat Google mewajibkan verifikasi. Klik **Save**.
+5. Kembali ke <https://console.cloud.google.com/auth/audience>, klik **Publish app** › **Confirm**.
+
+Setelah itu muncul banner "Your app requires verification". Biarkan saja dan tidak usah ajukan verifikasi, karena untuk dipakai sendiri tidak perlu. Akibatnya cuma dua: saat masuk ada layar peringatan (langkah 7), dan aplikasimu dibatasi 100 pengguna.
 
 **Sudah terlanjur masuk waktu masih Testing?** Izin lama itu tetap habis di hari ke-7. Masuk sekali lagi setelah Publish (atau tunggu Saku memintanya), setelah itu awet.
+
+### Testing
+
+1. Di bagian **Test users** klik **Add users**.
+2. Masukkan email Google yang tugasnya mau disinkronkan, lalu **Save**.
+
+Izinnya habis 7 hari setelah kamu masuk. Kalau sudah habis, Pengaturan › To-do menulis **Google minta kamu masuk lagi**: klik **Masuk dengan Google** (langkah 7). Tugasmu tetap aman: salinannya ada di Mac, dan perubahan selama itu ikut terkirim begitu kamu masuk lagi.
 
 ## 5. Buat OAuth client tipe Desktop
 
