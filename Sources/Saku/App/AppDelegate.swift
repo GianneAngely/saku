@@ -25,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         app.commands = Commands(
             openSettings: { [weak self] pane in self?.showSettings(pane) },
             openNotch: { [weak self] tab in self?.notch.open(tab) },
+            toggleNotch: { [weak self] tab, typing in self?.notch.toggleFromKeyboard(tab, typing: typing) },
             closeNotch: { [weak self] in self?.notch.close() }
         )
         Features.install(app)

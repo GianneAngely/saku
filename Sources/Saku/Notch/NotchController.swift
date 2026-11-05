@@ -14,6 +14,9 @@ final class NotchController: NSObject {
     private var dragBaseline = NSPasteboard(name: .drag).changeCount
     private var mouseDown = false
 
+    /// Opened with a keyboard shortcut: stays open until the pointer has visited the panel (or Esc / click outside).
+    private(set) var openedByKeyboard = false
+
     /// Live tests set this instead of moving the real pointer.
     var pointerOverride: CGPoint?
     var pointerLocation: CGPoint { pointerOverride ?? NSEvent.mouseLocation }
@@ -181,7 +184,8 @@ final class NotchController: NSObject {
             guard s.alert == nil else { return }
             if hit(hotZone, p) { scheduleOpen() } else { cancelOpen() }
         case .open:
-            if inside { cancelClose() } else if !keepOpen { scheduleClose() }
+            if inside { openedByKeyboard = false }
+            if inside { cancelClose() } else if !keepOpen && !openedByKeyboard { scheduleClose() }
         case .drop:
             break
         }
@@ -258,12 +262,29 @@ final class NotchController: NSObject {
             app.notch.dropTarget = nil
         }
         app.notch.pinned = false
+        openedByKeyboard = false
         panel.allowKey = false
         if panel.isKeyWindow {   // hand the keyboard back to the app underneath
             panel.orderOut(nil)
             panel.orderFrontRegardless()
         }
         setIgnoresMouse(true)
+    }
+
+    /// Shortcut: open (on a tab), or close if that tab is already showing. `typing` puts the keyboard in the panel.
+    func toggleFromKeyboard(_ tab: Tab?, typing: Bool) {
+        guard let panel else { return }
+        if app.notch.mode == .open && (tab == nil || tab == app.notch.tab) {
+            close()
+            return
+        }
+        let wasOpen = app.notch.mode == .open
+        open(tab)
+        if !wasOpen { openedByKeyboard = true }
+        if typing {
+            app.notch.focusSearch = true
+            panel.makeKey()
+        }
     }
 
     func toggle(_ tab: Tab? = nil) {

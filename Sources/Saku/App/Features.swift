@@ -26,6 +26,7 @@ enum Features {
         app.mirror = MirrorModel(prefs: app.prefs)
         app.launcher = LauncherModel()
         app.shortcuts = ShortcutsModel(prefs: app.prefs)
+        installHotkeys(app)
         SelfTest.suites.append(("apps", AppsChecks.run))
         Render.scenes += AppsChecks.scenes
         // The camera never keeps running behind a closed notch.
@@ -161,6 +162,35 @@ enum Features {
         Render.scenes += MusicChecks.scenes
     }
 
+    static func installHotkeys(_ app: AppModel) {
+        let h = HotkeyCenter(prefs: app.prefs)
+        app.hotkeys = h
+        h.perform = { [weak app] a in
+            guard let app else { return }
+            switch a {
+            case .toggle: app.commands.toggleNotch(nil, false)
+            case .pomodoro:
+                app.timers.pomoToggle()
+                app.flash(app.timers.pomo.running ? "play.fill" : "pause.fill",
+                          app.timers.pomo.running ? tr("Focus started") : tr("Focus paused"), tint: Theme.butter)
+            case .prompterPlay:
+                if app.prompter.live { app.prompter.togglePlay() } else { app.prompter.start() }
+            case .prompterFaster: app.prompter.setSpeed(app.prefs.v.prompterSpeed + 10)
+            case .prompterSlower: app.prompter.setSpeed(app.prefs.v.prompterSpeed - 10)
+            case .prompterBack: app.prompter.back()
+            case .pin:
+                if app.notch.mode != .open { app.commands.toggleNotch(nil, false) }
+                app.notch.pinned.toggle()
+            default:
+                guard let t = a.tab, Tab.available.contains(t) else { return }
+                app.commands.toggleNotch(t, [.clipboard, .apps, .ai].contains(t))
+            }
+        }
+        if !app.options.qa { h.apply() }
+        observe(app, { _ = $0.prompter.live }) { $0.hotkeys.reading = $0.prompter.live }
+        SelfTest.suites.append(("keyboard", KeyboardChecks.run))
+    }
+
     /// Calls `action` every time something read in `track` changes (Observation, re-armed after each change).
     static func observe(_ app: AppModel, _ track: @escaping @MainActor (AppModel) -> Void, _ action: @escaping @MainActor (AppModel) -> Void) {
         withObservationTracking { track(app) } onChange: { [weak app] in
@@ -173,6 +203,7 @@ enum Features {
     }
 
     static func shutdown(_ app: AppModel) {
+        app.hotkeys?.unregisterAll()
         app.notes?.saveNow()
         app.trackers?.saveNow()
         app.prompter?.stopVoice()
