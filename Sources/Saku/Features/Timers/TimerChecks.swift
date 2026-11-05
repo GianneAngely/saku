@@ -67,6 +67,31 @@ enum TimerChecks {
         check(m.liveDisplay() == nil, "idle pomodoro stays out of the closed notch in auto")
         app.dismissAlert()
 
+        // Countdown.
+        var cd = Countdown(total: 120)
+        cd.start(at: t0)
+        cd.add(60, at: t0)
+        check(cd.endsAt == t0.addingTimeInterval(180) && cd.total == 180, "+1 min extends a running countdown")
+        cd.pause(at: t0.addingTimeInterval(30))
+        check(cd.remaining == 150, "countdown pause")
+        cd.add(60, at: t0)
+        check(cd.remaining == 210 && cd.total == 240, "+1 min while paused")
+        m.countdown = Countdown()
+        m.cdSet(600, start: true)
+        check(m.countdown.running && abs(m.countdown.left(at: Date()) - 600) < 1, "preset starts a countdown")
+        if case .timer(let disp) = app.liveActivity {
+            check(disp.icon == "hourglass", "the timer started last shows in the closed notch")
+        } else { check(false, "countdown in the closed notch") }
+        m.countdown.label = "Tea"
+        m.check(now: Date().addingTimeInterval(601))
+        check(!m.countdown.started, "countdown resets when done")
+        check(app.notch.alert?.title == tr("%@ is done!", "Tea"), "countdown alert uses the label")
+        app.notch.alert?.actions.first?.run()
+        check(m.countdown.running, "restart from the alert")
+        m.cdReset()
+        app.dismissAlert()
+        m.countdown = Countdown()
+
         // Saved state survives a restart.
         let saved = JSONStore<TimersSave>("timers.json").load()
         check(saved?.pomo == m.pomo, "timers are saved")
@@ -88,6 +113,18 @@ enum TimerChecks {
             app.timers.mode = .pomodoro
             app.timers.pomo = Pomodoro(round: 2, doneToday: 3, day: TimersModel.dayKey(Date()))
             app.timers.pomoToggle(now: Date().addingTimeInterval(-107))
+        },
+        Render.Scene(name: "open-timers-countdown", settle: 0.4) { app in
+            app.notch.mode = .open
+            app.notch.tab = .timers
+            app.timers.mode = .countdown
+            app.timers.countdown = Countdown(total: 600, label: "Tea")
+            app.timers.cdToggle(now: Date().addingTimeInterval(-151))
+        },
+        Render.Scene(name: "alert-countdown", settle: 0.9) { app in
+            app.present(NotchAlert(title: tr("%@ is done!", "Tea"), subtitle: tr("Your %@ countdown has finished.", "10:00"),
+                                   icon: "hourglass", tint: Theme.blossom,
+                                   actions: [AlertAction(title: tr("Restart"), primary: true), AlertAction(title: tr("Done"))]))
         },
         Render.Scene(name: "open-timers-break", settle: 0.4) { app in
             app.notch.mode = .open

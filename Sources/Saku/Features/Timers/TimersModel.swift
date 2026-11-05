@@ -75,6 +75,43 @@ struct Pomodoro: Codable, Equatable {
     var tint: Color { phase == .focus ? Theme.butter : Theme.mint }
 }
 
+/// Plain countdown with an optional label ("Tea", "Laundry").
+struct Countdown: Codable, Equatable {
+    var total: Double = 300
+    var endsAt: Date?
+    var remaining: Double?
+    var label = ""
+
+    var running: Bool { endsAt != nil }
+    var started: Bool { endsAt != nil || remaining != nil }
+
+    func left(at now: Date) -> Double {
+        if let e = endsAt { return max(0, e.timeIntervalSince(now)) }
+        return remaining ?? total
+    }
+
+    mutating func start(at now: Date) {
+        endsAt = now.addingTimeInterval(remaining ?? total)
+        remaining = nil
+    }
+
+    mutating func pause(at now: Date) {
+        remaining = left(at: now)
+        endsAt = nil
+    }
+
+    mutating func reset() {
+        endsAt = nil
+        remaining = nil
+    }
+
+    /// Adds time to a running or paused countdown (the ring grows with it).
+    mutating func add(_ seconds: Double, at now: Date) {
+        if let e = endsAt { endsAt = e.addingTimeInterval(seconds) } else { remaining = (remaining ?? total) + seconds }
+        total += seconds
+    }
+}
+
 enum TimerMode: String, Codable, CaseIterable {
     case pomodoro, countdown, stopwatch
 
@@ -86,22 +123,33 @@ enum TimerMode: String, Codable, CaseIterable {
         }
     }
 
+    var tint: Color {
+        switch self {
+        case .pomodoro: Theme.butter
+        case .countdown: Theme.blossom
+        case .stopwatch: Theme.sky
+        }
+    }
+
     /// Modes whose feature has landed. Feature branches add themselves here.
-    static let available: [TimerMode] = [.pomodoro]
+    static let available: [TimerMode] = [.pomodoro, .countdown]
 }
 
 /// Everything saved between launches, so a running timer survives a restart.
 struct TimersSave: Codable {
     var pomo = Pomodoro()
     var mode = TimerMode.pomodoro
+    var countdown: Countdown? = nil
+    var lastStarted: TimerMode? = nil
 }
 
 @MainActor @Observable
 final class TimersModel {
     var pomo = Pomodoro() { didSet { changed() } }
     var mode = TimerMode.pomodoro { didSet { changed() } }
+    var countdown = Countdown() { didSet { changed() } }
     /// Which timer was started last (decides what the closed notch shows when several are active).
-    private(set) var lastStarted: TimerMode?
+    private(set) var lastStarted: TimerMode? { didSet { changed() } }
 
     @ObservationIgnored private let app: AppModel
     @ObservationIgnored private let store = JSONStore<TimersSave>("timers.json")
@@ -117,6 +165,8 @@ final class TimersModel {
         if let s = store.load() {
             pomo = s.pomo
             mode = TimerMode.available.contains(s.mode) ? s.mode : .pomodoro
+            countdown = s.countdown ?? Countdown()
+            lastStarted = s.lastStarted
         }
         loading = false
         check()
@@ -137,7 +187,7 @@ final class TimersModel {
         schedule()
     }
 
-    private func save() { store.save(TimersSave(pomo: pomo, mode: mode)) }
+    private func save() { store.save(TimersSave(pomo: pomo, mode: mode, countdown: countdown, lastStarted: lastStarted)) }
 
     // MARK: Pomodoro
 
@@ -163,6 +213,54 @@ final class TimersModel {
     /// Completes anything that is due. Called by the fire timer, at launch and on wake.
     func check(now: Date = Date()) {
         if let e = pomo.endsAt, e <= now { finishPomodoro(now: now) }
+        if let e = countdown.endsAt, e <= now { finishCountdown() }
+    }
+
+    // MARK: Countdown
+
+    func cdToggle(now: Date = Date()) {
+        if countdown.running {
+            countdown.pause(at: now)
+        } else {
+            countdown.start(at: now)
+            lastStarted = .countdown
+        }
+    }
+
+    func cdReset() { countdown.reset() }
+
+    /// Picks a new length; a running countdown restarts with it.
+    func cdSet(_ seconds: Double, start: Bool = false, now: Date = Date()) {
+        let wasRunning = countdown.running
+        countdown.total = max(1, seconds)
+        countdown.reset()
+        if start || wasRunning {
+            countdown.start(at: now)
+            lastStarted = .countdown
+        }
+    }
+
+    func cdAdd(_ seconds: Double, now: Date = Date()) { countdown.add(seconds, at: now) }
+
+    private func finishCountdown() {
+        let label = countdown.label
+        countdown.reset()
+        ring()
+        guard p.timerAlert else { return }
+        app.present(NotchAlert(
+            title: label.isEmpty ? tr("Time's up!") : tr("%@ is done!", label),
+            subtitle: tr("Your %@ countdown has finished.", TimerDisplay.clock(countdown.total, roundUp: true)),
+            icon: "hourglass", tint: Theme.blossom,
+            actions: [
+                AlertAction(title: tr("Restart"), primary: true) { [weak self] in self?.cdToggle() },
+                AlertAction(title: tr("Done")),
+            ],
+            autoDismiss: 120))
+    }
+
+    func cdDisplay(now: Date = Date()) -> TimerDisplay {
+        TimerDisplay(icon: "hourglass", tint: Theme.blossom, countsUp: false, anchor: countdown.endsAt,
+                     frozen: countdown.left(at: now), total: countdown.total)
     }
 
     private func finishPomodoro(now: Date) {
@@ -208,7 +306,7 @@ final class TimersModel {
     // MARK: Firing
 
     /// Deadlines of everything that runs; feature branches extend this.
-    private var deadlines: [Date] { [pomo.endsAt].compactMap { $0 } }
+    private var deadlines: [Date] { [pomo.endsAt, countdown.endsAt].compactMap { $0 } }
 
     /// One wall-clock timer for the earliest deadline. Nothing ticks while timers are idle.
     private func schedule() {
@@ -237,8 +335,24 @@ final class TimersModel {
     func liveDisplay() -> TimerDisplay? {
         switch p.closedStyle {
         case "pomodoro": return pomoDisplay()
-        case "auto": return pomo.started ? pomoDisplay() : nil
+        case "countdown": return cdDisplay()
+        case "auto": return autoDisplay()
         default: return nil
         }
+    }
+
+    /// Displays of every active timer, keyed by mode. Feature branches add theirs.
+    private var activeDisplays: [(TimerMode, Bool, TimerDisplay)] {
+        var out: [(TimerMode, Bool, TimerDisplay)] = []
+        if pomo.started { out.append((.pomodoro, pomo.running, pomoDisplay())) }
+        if countdown.started { out.append((.countdown, countdown.running, cdDisplay())) }
+        return out
+    }
+
+    /// The timer started last if it is still active, else a running one, else a paused one.
+    private func autoDisplay() -> TimerDisplay? {
+        let active = activeDisplays
+        if let last = lastStarted, let hit = active.first(where: { $0.0 == last }) { return hit.2 }
+        return (active.first(where: { $0.1 }) ?? active.first)?.2
     }
 }
