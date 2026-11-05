@@ -25,28 +25,30 @@ Kenapa harus bikin sendiri? Saku tidak punya server dan tidak membawa kunci Goog
 4. **Contact information**: email kamu. Centang persetujuan, lalu **Create**.
 5. Buka <https://console.cloud.google.com/auth/scopes> (Data Access) › **Add or remove scopes**, cari `Google Tasks API`, centang `.../auth/tasks`, lalu **Update** dan **Save**.
 
-## 4. Pakai mode Testing
+## 4. Publish ke In production
 
-Buka <https://console.cloud.google.com/auth/audience>.
+Biar sekali masuk langsung awet, aplikasimu perlu status **In production**. Google baru mengizinkan **Publish app** kalau Branding sudah berisi home page, privacy policy, dan domainnya. Saku sudah punya halaman-halaman itu di <https://gianneangely.github.io/saku-site/>, jadi tinggal diisi.
 
-| | Testing | In production (tanpa verifikasi) |
+1. Buka <https://console.cloud.google.com/auth/branding>.
+2. Di **Authorized domains** klik **Add domain**, isi `gianneangely.github.io`. Isi ini dulu, sebelum link-link di bawah.
+3. Isi bagian **App domain**:
+   - **Application home page**: `https://gianneangely.github.io/saku-site/`
+   - **Application privacy policy link**: `https://gianneangely.github.io/saku-site/privacy.html`
+   - **Application terms of service link**: `https://gianneangely.github.io/saku-site/terms.html`
+4. **App logo** biarkan kosong, karena logo membuat Google mewajibkan verifikasi. Klik **Save**.
+5. Buka <https://console.cloud.google.com/auth/audience>, klik **Publish app** › **Confirm**.
+
+Setelah itu muncul banner "Your app requires verification". Biarkan saja dan tidak usah ajukan verifikasi, karena untuk dipakai sendiri tidak perlu. Akibatnya cuma dua: saat masuk ada layar peringatan (langkah 7), dan aplikasimu dibatasi 100 pengguna.
+
+| | In production (tanpa verifikasi) | Testing |
 | --- | --- | --- |
-| Syarat | Cukup daftarkan email-mu di **Test users** | **Branding** lengkap: home page, privacy policy, dan authorized domain |
-| Siapa yang bisa masuk | Cuma akun di **Test users** (maksimal 100) | Akun Google mana pun (maksimal 100 orang selama belum diverifikasi Google) |
-| Masa berlaku izin di Saku | **Habis 7 hari** setelah kamu masuk, lalu harus masuk lagi | Awet sampai kamu mencabutnya |
+| Syarat | Branding di atas | Email-mu di **Test users** |
+| Siapa yang bisa masuk | Akun Google mana pun (maksimal 100 orang) | Cuma akun di **Test users** (maksimal 100) |
+| Masa berlaku izin di Saku | Awet sampai kamu mencabutnya | **Habis 7 hari** setelah kamu masuk |
 
-**Pakai Testing dulu.** Google baru mengizinkan **Publish app** kalau Branding sudah lengkap: alamat home page, alamat privacy policy, dan domain kedua halaman itu terdaftar di **Authorized domains**. Selama belum ada halaman web untuk dua alamat itu, Testing satu-satunya pilihan.
+**Tidak mau Publish?** Biarkan di Testing: di bagian **Test users** klik **Add users**, masukkan email Google-mu, lalu **Save**. Izinnya habis 7 hari setelah kamu masuk, lalu Pengaturan › To-do menulis **Google minta kamu masuk lagi**. Tugasmu tetap aman: salinannya ada di Mac, dan perubahan selama itu ikut terkirim begitu kamu masuk lagi.
 
-1. Di bagian **Test users** klik **Add users**.
-2. Masukkan email Google yang tugasnya mau disinkronkan, lalu **Save**.
-
-Di mode Testing, izin dari Google habis 7 hari setelah kamu masuk. Kalau sudah habis, Pengaturan › To-do menulis **Google minta kamu masuk lagi**: klik **Masuk dengan Google** (langkah 7). Tugasmu tetap aman: salinannya ada di Mac, dan perubahan selama itu ikut terkirim begitu kamu masuk lagi.
-
-> **Catatan untuk nanti: pindah ke In production.** Biar tidak perlu masuk tiap 7 hari, Branding butuh halaman web dan privacy policy. Saku belum punya keduanya; rencananya dibuat di GitHub Pages saat Saku dirilis publik. Begitu ada (atau kalau kamu punya halaman web sendiri):
->
-> 1. Di <https://console.cloud.google.com/auth/branding> isi **Application home page** dan **Application privacy policy link**, tambahkan domainnya di **Authorized domains**, lalu **Save**.
-> 2. Di <https://console.cloud.google.com/auth/audience> klik **Publish app** › **Confirm**. Tidak usah ajukan verifikasi untuk dipakai sendiri.
-> 3. Izin lama dari mode Testing tetap habis di hari ke-7. Setelah kamu masuk lagi, izin barunya awet.
+**Sudah terlanjur masuk waktu masih Testing?** Izin lama itu tetap habis di hari ke-7. Masuk sekali lagi setelah Publish (atau tunggu Saku memintanya), setelah itu awet.
 
 ## 5. Buat OAuth client tipe Desktop
 
@@ -68,7 +70,7 @@ Pilih salah satu:
 
 1. Pengaturan › To-do › **Masuk dengan Google**. Browser kamu terbuka.
 2. Pilih akun Google kamu.
-3. Kalau muncul **"Google belum memverifikasi aplikasi ini"**: di mode Testing tinggal klik **Lanjutkan** (Continue). Kalau aplikasimu sudah In production, klik **Lanjutan** (Advanced) › **Buka Saku (tidak aman)**. Ini muncul karena aplikasinya buatanmu sendiri dan belum ditinjau Google.
+3. Muncul **"Google belum memverifikasi aplikasi ini"**: klik **Lanjutan** (Advanced) › **Buka Saku (tidak aman)**. Ini muncul karena aplikasinya buatanmu sendiri dan belum ditinjau Google, dan cukup sekali tiap kamu masuk. Di mode Testing layarnya sedikit beda: tinggal klik **Lanjutkan** (Continue).
 4. Izinkan **Lihat, edit, buat, dan hapus semua tugas Anda**, lalu **Lanjutkan**.
 5. Tab browser bilang "Saku is connected to Google Tasks". Tutup tabnya. Di Saku statusnya jadi **Tersambung ke Google Tasks** dan daftar tugasmu muncul di tab To-do.
 
@@ -76,7 +78,7 @@ Pilih salah satu:
 
 - **"Sign-in timed out"**: browser tidak kembali ke Saku dalam 5 menit. Klik Masuk lagi.
 - **"Error 403: access_denied"**: aplikasimu masih mode Testing dan akunmu belum ada di Test users (langkah 4).
-- **"Google minta kamu masuk lagi"**: di mode Testing ini normal, izinnya habis 7 hari setelah kamu masuk. Klik **Masuk dengan Google** lagi. Biar tidak berulang, lihat catatan In production di langkah 4.
+- **"Google minta kamu masuk lagi"**: izin dari Google habis atau dicabut. Di mode Testing ini terjadi tiap 7 hari: Publish ke In production (langkah 4), lalu masuk sekali lagi. Di In production, ini cuma terjadi kalau aksesnya dicabut atau Saku 6 bulan tidak dipakai. Klik **Masuk dengan Google** lagi.
 - **Mau putus**: Pengaturan › To-do › **Keluar**. Saku mencabut izinnya di Google, tugas di Google tetap aman. Bisa juga dicabut dari <https://myaccount.google.com/connections>.
 
 ## Data yang Saku simpan
@@ -84,3 +86,5 @@ Pilih salah satu:
 - Token masuk: di **Keychain** macOS.
 - File client: di `~/Library/Application Support/Saku/google-oauth.json` (tidak ada di aplikasi atau di repo).
 - Salinan tugas untuk dipakai offline: `~/Library/Application Support/Saku/todo.json`. Perubahan saat offline ikut terkirim begitu internet kembali.
+
+Kebijakan privasi lengkapnya ada di <https://gianneangely.github.io/saku-site/id/privacy.html>.
