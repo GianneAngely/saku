@@ -13,6 +13,7 @@ struct TabContent: View {
         case .clipboard: ClipboardView(app: app)
         case .notes: NotesView(app: app)
         case .prompter: PrompterTab(app: app)
+        case .calendar: CalendarView(app: app)
         default: EmptyState(icon: tab.icon, title: tab.title, subtitle: tr("Turn this tab on in Settings"))
         }
     }
@@ -47,6 +48,22 @@ struct TodayCard: View {
                     Text(month).font(Theme.font(13, .semibold)).foregroundStyle(Theme.text2)
                 }
                 Text(time).font(Theme.mono(13, .semibold)).foregroundStyle(Theme.text2)
+                if let cal = app.calendar, app.prefs.v.calendarOnHome {
+                    let now = cal.now
+                    let next = cal.todayEvents.filter { $0.end > now }.prefix(2)
+                    if cal.eventAccess != .granted {
+                        Spacer(minLength: 4)
+                        PillButton(title: tr("Show my events"), icon: "calendar", compact: true) { app.commands.openNotch(.calendar) }
+                    } else if next.isEmpty {
+                        Spacer(minLength: 4)
+                        Text(tr("No more events today")).font(Theme.font(11)).foregroundStyle(Theme.text3)
+                    } else {
+                        Spacer(minLength: 4)
+                        VStack(spacing: 0) {
+                            ForEach(Array(next)) { e in EventRow(app: app, event: e, compact: true) }
+                        }
+                    }
+                }
                 Spacer(minLength: 0)
             }
         }

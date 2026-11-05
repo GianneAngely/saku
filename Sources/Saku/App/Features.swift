@@ -13,6 +13,22 @@ enum Features {
         installClipboard(app)
         installNotes(app)
         installPrompter(app)
+        installCalendar(app)
+    }
+
+    static func installCalendar(_ app: AppModel) {
+        let source: CalendarSource = app.options.mock ? DemoCalendarSource(now: Date()) : EventKitSource()
+        app.calendar = CalendarModel(app: app, source: source)
+        app.addLive(priority: 40) { [weak app] in
+            guard let app, let m = app.calendar, app.prefs.v.meetingHeadsUp, app.prefs.v.closedStyle == "auto" else { return nil }
+            let now = app.options.mock ? m.now : app.clock
+            guard let e = CalendarModel.nextMeeting(m.upcoming, now: now, lead: app.prefs.v.meetingLead) else { return nil }
+            return .meeting(text: CalendarModel.countdownText(to: e.start, now: now))
+        }
+        let t = Timer(timeInterval: 600, repeats: true) { [weak app] _ in MainActor.assumeIsolated { app?.calendar.reload() } }
+        RunLoop.main.add(t, forMode: .common)
+        SelfTest.suites.append(("calendar", CalendarChecks.run))
+        Render.scenes += CalendarChecks.scenes
     }
 
     static func installPrompter(_ app: AppModel) {

@@ -49,6 +49,7 @@ final class AppModel {
     var clipboard: ClipboardModel!
     var notes: NotesModel!
     var prompter: PrompterModel!
+    var calendar: CalendarModel!
 
     /// Trackpad scrolling over the open notch (the teleprompter uses it).
     @ObservationIgnored var scrollHandler: ((CGFloat) -> Bool)?
