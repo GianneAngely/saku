@@ -4,7 +4,7 @@ import ServiceManagement
 import SwiftUI
 
 enum SettingsPane: String, CaseIterable, Identifiable {
-    case welcome, general, appearance, tabs, music, tray, clipboard, timers, notes, prompter, calendar, trackers,
+    case welcome, general, appearance, tabs, music, tray, clipboard, timers, notes, todo, prompter, calendar, trackers,
          web, translate, ai, camera, apps, system, tools, keyboard, about
 
     var id: String { rawValue }
@@ -20,6 +20,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .clipboard: tr("Clipboard")
         case .timers: tr("Timers")
         case .notes: tr("Notes")
+        case .todo: tr("To-do")
         case .prompter: tr("Teleprompter")
         case .calendar: tr("Calendar")
         case .trackers: tr("Trackers")
@@ -62,6 +63,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .clipboard: Color(hex: 0x64D2FF)
         case .timers: Color(hex: 0xFF9F0A)
         case .notes: Color(hex: 0xFFD60A)
+        case .todo: Color(hex: 0x32D74B)
         case .prompter: Color(hex: 0xFF6482)
         case .calendar: Color(hex: 0xFF453A)
         case .trackers: Color(hex: 0x30D158)
@@ -174,6 +176,7 @@ enum FeaturePanes {
         case .tray: TrayPane(app: app)
         case .clipboard: ClipboardPane(app: app)
         case .notes: NotesPane(app: app)
+        case .todo: TodoPane(app: app)
         case .prompter: PrompterPane(app: app)
         case .calendar: CalendarPane(app: app)
         case .system: SystemPane(app: app)

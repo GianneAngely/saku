@@ -12,6 +12,7 @@ struct TabContent: View {
         case .tray: TrayView(app: app)
         case .clipboard: ClipboardView(app: app)
         case .notes: NotesView(app: app)
+        case .todo: TodoView(app: app)
         case .prompter: PrompterTab(app: app)
         case .calendar: CalendarView(app: app)
         case .system: SystemView(app: app)

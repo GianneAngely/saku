@@ -76,7 +76,7 @@ struct HotkeySpec: Codable, Equatable, Hashable {
 
 /// Things a shortcut can do.
 enum HotkeyAction: String, CaseIterable, Codable, Identifiable {
-    case toggle, home, tray, clipboard, timers, notes, prompter, calendar, trackers, web, translate, ai, camera, apps, system, tools
+    case toggle, home, tray, clipboard, timers, notes, todo, prompter, calendar, trackers, web, translate, ai, camera, apps, system, tools
     case features, pomodoro, prompterPlay, pin
     case prompterFaster, prompterSlower, prompterBack
 

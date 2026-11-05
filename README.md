@@ -55,6 +55,7 @@ cd saku
 | 🎬 | **Teleprompter** | Your script under the camera, at your pace or following your voice, hidden from screen sharing |
 | 📅 | **Calendar** | Today, a month view, reminders, new events with **+**, one-click Join, and Google Calendar |
 | 📝 | **Notes** | Several notes that save as you type |
+| ✅ | **To-do** | Lists, subtasks and due dates; syncs both ways with Google Tasks using your own Google client ([setup guide](docs/google-tasks-setup.md)) |
 | 💧 | **Trackers** | Days left, habit counters and a water tracker |
 | 🔋 | **System** | Battery health and cycle count, network speed, Wi-Fi, CPU and memory |
 | 🌐 | **Web, Translate, AI** | A small browser, on-device translation, and Apple Intelligence (or Claude and Gemini with your own key) |
@@ -100,6 +101,7 @@ Saku never asks at launch. Each prompt appears the first time you use the featur
 - Saku only goes online for things you can see: the weather for the city you pick ([Open-Meteo](https://open-meteo.com)), album covers (Spotify's public oEmbed and the iTunes Search API), the Web tab, and Translate or AI when you choose a cloud service with your own key. Those requests go straight to that service.
 - API keys live in the macOS Keychain.
 - Google Calendar is synced by macOS itself. Saku reads and writes it through the calendar on your Mac.
+- Google Tasks sync uses your own Google OAuth client and asks only for your tasks. Its token stays in the Keychain.
 - The teleprompter is always hidden from screen sharing and screenshots; the whole notch can be too (Settings › General).
 
 ## FAQ
@@ -132,6 +134,12 @@ Click the grid button in the notch (or press `⌃⌥/`) and type what you're loo
 <summary><b>How do I connect Google Calendar?</b></summary>
 
 Settings › Calendar › **Connect Google Calendar**. macOS opens Internet Accounts: add your Google account there and keep Calendars on. Your Google calendars show up in Saku a moment later. Reminders can go to a Google calendar too, as short events with an alert.
+</details>
+
+<details>
+<summary><b>Can the to-do list sync with Google Tasks?</b></summary>
+
+Yes. Create your own free OAuth client in Google Cloud (about 10 minutes, once), import its JSON in Settings › To-do and sign in. The step-by-step guide is in [docs/google-tasks-setup.md](docs/google-tasks-setup.md). Without it, To-do keeps your tasks on this Mac.
 </details>
 
 <details>

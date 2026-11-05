@@ -50,6 +50,7 @@ final class AppModel {
     var notes: NotesModel!
     var prompter: PrompterModel!
     var calendar: CalendarModel!
+    var todo: TodoModel!
     var battery: BatteryModel!
     var monitor: SystemMonitor!
     var trackers: TrackersModel!

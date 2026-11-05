@@ -65,6 +65,7 @@ enum Render {
                     app.prefs.v.reminderCalendarID = "google"
                     app.calendar.reload()
                 }),
+                ("settings-todo", AnyView(TodoPane(app: app)), {}),
                 ("settings-calendar-ask", AnyView(CalendarPane(app: app)), {
                     demo?.eventAccess = .unknown
                     app.calendar.reload()
@@ -114,6 +115,13 @@ enum Render {
         app.clipboard?.mode = 0
         if let m = app.music, !m.playing, m.track != nil { m.playPause() }
         // Demo calendar follows the same frozen clock as the date in the pictures.
+        if let todo = app.todo {
+            todo.auth.clientOverride = nil
+            for k in ["google-tasks-access", "google-tasks-expiry", "google-tasks-refresh"] { Secrets.set(k, "") }
+            todo.auth.refreshState()
+            todo.now = { Self.fixedDate }
+            todo.reset()
+        }
         if let demo = app.calendar?.source as? DemoCalendarSource {
             demo.now = Self.fixedDate
             demo.eventAccess = .granted

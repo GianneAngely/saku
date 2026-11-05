@@ -3,7 +3,7 @@ import Observation
 import SwiftUI
 
 enum Tab: String, CaseIterable, Identifiable, Codable {
-    case home, tray, clipboard, timers, notes, prompter, calendar, trackers, web, translate, ai, camera, apps, system, tools
+    case home, tray, clipboard, timers, notes, todo, prompter, calendar, trackers, web, translate, ai, camera, apps, system, tools
 
     var id: String { rawValue }
 
@@ -14,6 +14,7 @@ enum Tab: String, CaseIterable, Identifiable, Codable {
         case .clipboard: "list.clipboard.fill"
         case .timers: "timer"
         case .notes: "note.text"
+        case .todo: "checklist.checked"
         case .prompter: "text.line.first.and.arrowtriangle.forward"
         case .calendar: "calendar"
         case .trackers: "target"
@@ -34,6 +35,7 @@ enum Tab: String, CaseIterable, Identifiable, Codable {
         case .clipboard: tr("Clipboard")
         case .timers: tr("Timers")
         case .notes: tr("Notes")
+        case .todo: tr("To-do")
         case .prompter: tr("Teleprompter")
         case .calendar: tr("Calendar")
         case .trackers: tr("Trackers")
@@ -48,7 +50,7 @@ enum Tab: String, CaseIterable, Identifiable, Codable {
     }
 
     /// Tabs whose feature has landed. Feature branches add themselves here.
-    static let available: [Tab] = [.home, .tray, .clipboard, .timers, .notes, .prompter, .calendar, .trackers, .web, .translate, .ai, .camera, .apps, .system, .tools]
+    static let available: [Tab] = [.home, .tray, .clipboard, .timers, .notes, .todo, .prompter, .calendar, .trackers, .web, .translate, .ai, .camera, .apps, .system, .tools]
 }
 
 enum NotchMode: Equatable {
@@ -96,6 +98,7 @@ enum LiveActivity: Equatable {
     case timer(TimerDisplay)
     case charging(level: Int, charging: Bool)
     case meeting(text: String)
+    case todo(count: Int)
 
     /// Width of each wing (both sides use the larger one so the notch stays centred).
     var wing: Double {
@@ -108,6 +111,7 @@ enum LiveActivity: Equatable {
         case .timer(let d): d.countsUp ? 60 : (d.total >= 3600 ? 66 : 54)
         case .charging: 50
         case .meeting: 64
+        case .todo: 40
         }
     }
 }

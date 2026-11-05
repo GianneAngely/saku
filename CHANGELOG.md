@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0
+
+- **To-do tab:** lists, subtasks and due dates (type "Pay rent Friday"), with tasks due today beside the camera. Works on its own as a list on your Mac.
+- **Google Tasks sync:** two ways, cached for offline use, with your own Google OAuth client (PKCE sign-in in your browser, token in the Keychain). Setup guide in docs/google-tasks-setup.md.
+- System and Trackers show in the tab bar by default.
+
 ## 1.1.1
 
 - **New icon:** a soft clay sakura on a purple night sky, rendered in Blender. It also sits in the closed notch and on alert cards.

@@ -140,6 +140,8 @@ struct ClosedWings: View {
             Image(systemName: charging ? "bolt.fill" : "powerplug.fill").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.mint)
         case .meeting:
             Image(systemName: "calendar").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.blossom)
+        case .todo:
+            Image(systemName: "checklist").font(.system(size: 12, weight: .bold)).foregroundStyle(Theme.mint)
         }
     }
 
@@ -160,6 +162,9 @@ struct ClosedWings: View {
             Text("\(level)%").font(Theme.mono(12, .bold)).foregroundStyle(Theme.mint)
         case .meeting(let text):
             Text(text).font(Theme.font(11.5, .semibold)).foregroundStyle(Theme.text).lineLimit(1)
+        case .todo(let count):
+            Text("\(count)").font(Theme.mono(12, .bold)).foregroundStyle(Theme.mint)
+                .help(tr("%d tasks due today", count))
         }
     }
 
