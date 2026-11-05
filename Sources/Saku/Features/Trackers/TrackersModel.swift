@@ -40,15 +40,25 @@ struct Counter: Codable, Identifiable, Equatable {
     var color = "#FFD66B"
 }
 
+/// Today's water, in millilitres (shown in the unit from settings).
+struct WaterDay: Codable, Equatable {
+    var day = ""
+    var ml = 0.0
+    var drinks: [Date] = []
+}
+
 struct TrackersSave: Codable {
     var daysLeft: [DaysLeft] = []
     var counters: [Counter]? = nil
+    var water: WaterDay? = nil
 }
 
 @MainActor @Observable
 final class TrackersModel {
     private(set) var daysLeft: [DaysLeft] = []
     private(set) var counters: [Counter] = []
+    private(set) var water = WaterDay()
+    @ObservationIgnored private var waterTimer: Timer?
 
     @ObservationIgnored let app: AppModel
     @ObservationIgnored let store = JSONStore<TrackersSave>("trackers.json")
@@ -62,9 +72,10 @@ final class TrackersModel {
     func load(_ s: TrackersSave) {
         daysLeft = s.daysLeft
         counters = s.counters ?? []
+        water = s.water ?? WaterDay()
     }
 
-    var snapshot: TrackersSave { TrackersSave(daysLeft: daysLeft, counters: counters) }
+    var snapshot: TrackersSave { TrackersSave(daysLeft: daysLeft, counters: counters, water: water) }
 
     func changed() { saver.run { [weak self] in self?.saveNow() } }
     func saveNow() { store.save(snapshot) }
@@ -150,6 +161,78 @@ final class TrackersModel {
     func deleteCounter(_ id: UUID) {
         counters.removeAll { $0.id == id }
         changed()
+    }
+
+    // MARK: Water
+
+    func waterToday(now: Date = Date()) -> WaterDay {
+        water.day == TimersModel.dayKey(now) ? water : WaterDay(day: TimersModel.dayKey(now))
+    }
+
+    func drink(_ ml: Double? = nil, now: Date = Date()) {
+        var w = waterToday(now: now)
+        let before = w.ml
+        w.ml += ml ?? app.prefs.v.waterSip
+        w.drinks.append(now)
+        water = w
+        if before < app.prefs.v.waterGoal && w.ml >= app.prefs.v.waterGoal {
+            app.flash("drop.fill", tr("Water goal reached!"), tint: Theme.sky, seconds: 2.4)
+        }
+        changed()
+    }
+
+    func undoDrink(now: Date = Date()) {
+        var w = waterToday(now: now)
+        guard !w.drinks.isEmpty else { return }
+        w.drinks.removeLast()
+        w.ml = max(0, w.ml - app.prefs.v.waterSip)
+        water = w
+        changed()
+    }
+
+    /// Reminds every N minutes between 9:00 and 21:00 while under the goal, if nothing was logged meanwhile.
+    func scheduleWaterReminder() {
+        waterTimer?.invalidate()
+        waterTimer = nil
+        let every = app.prefs.v.waterReminder
+        guard every > 0 else { return }
+        let t = Timer(timeInterval: 60, repeats: true) { [weak self] _ in MainActor.assumeIsolated { self?.checkWaterReminder() } }
+        t.tolerance = 10
+        RunLoop.main.add(t, forMode: .common)
+        waterTimer = t
+    }
+
+    @ObservationIgnored private var lastNudge: Date?
+
+    func checkWaterReminder(now: Date = Date()) {
+        let every = app.prefs.v.waterReminder
+        guard every > 0 else { return }
+        let hour = Calendar.current.component(.hour, from: now)
+        let w = waterToday(now: now)
+        guard (9..<21).contains(hour), w.ml < app.prefs.v.waterGoal else { return }
+        let last = max(w.drinks.last ?? .distantPast, lastNudge ?? .distantPast)
+        guard now.timeIntervalSince(last) >= every * 60 else { return }
+        lastNudge = now
+        if app.prefs.v.timerSound { Sound.play("nudge", volume: app.prefs.v.timerVolume * 0.8) }
+        app.present(NotchAlert(title: tr("Water break"), subtitle: tr("%@ of %@ so far today.", waterText(w.ml), waterText(app.prefs.v.waterGoal)),
+                               icon: "drop.fill", tint: Theme.sky,
+                               actions: [AlertAction(title: tr("I drank %@", waterText(app.prefs.v.waterSip)), primary: true) { [weak self] in self?.drink() },
+                                         AlertAction(title: tr("Later"))],
+                               autoDismiss: 45))
+    }
+
+    /// 250 ml, 8.5 oz or 1 cup, in the unit from settings.
+    func waterText(_ ml: Double) -> String {
+        switch app.prefs.v.waterUnit {
+        case "oz": return String(format: "%.0f oz", ml / 29.5735)
+        case "cups": let c = ml / 250; return c == c.rounded() ? tr("%d cups", Int(c)) : String(format: tr("%.1f cups"), c)
+        default:
+            guard ml >= 1000 else { return "\(Int(ml)) ml" }
+            var s = String(format: "%.2f", ml / 1000)
+            while s.hasSuffix("0") { s.removeLast() }
+            if s.hasSuffix(".") { s.removeLast() }
+            return s + " L"
+        }
     }
 
     static func daysText(_ n: Int) -> String {

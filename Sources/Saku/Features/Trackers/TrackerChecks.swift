@@ -46,6 +46,41 @@ enum TrackerChecks {
         m.rollOver(now: Date().addingTimeInterval(86400 * 2))
         check(m.counters.first { $0.id == w.id }?.value == 5, "step size, and non-daily counters keep their value")
 
+        // Water.
+        app.prefs.v.waterGoal = 2000
+        app.prefs.v.waterSip = 250
+        app.prefs.v.waterUnit = "ml"
+        let start = Date()
+        check(m.waterToday(now: start).ml >= 0, "water day")
+        let base = m.waterToday(now: start).ml
+        for _ in 0..<3 { m.drink(now: start) }
+        check(m.waterToday(now: start).ml == base + 750, "drinks add up")
+        m.undoDrink(now: start)
+        check(m.waterToday(now: start).ml == base + 500, "undo a drink")
+        check(m.waterToday(now: start.addingTimeInterval(86400)).ml == 0, "a new day starts at zero")
+        check(m.waterText(250) == "250 ml" && m.waterText(1500) == "1.5 L" && m.waterText(2000) == "2 L" && m.waterText(1250) == "1.25 L", "millilitres")
+        app.prefs.v.waterUnit = "oz"
+        check(m.waterText(250) == "8 oz", "ounces")
+        app.prefs.v.waterUnit = "cups"
+        check(m.waterText(500) == tr("%d cups", 2), "cups")
+        app.prefs.v.waterUnit = "ml"
+        var c9 = DateComponents()
+        (c9.year, c9.month, c9.day, c9.hour, c9.minute) = (2030, 1, 7, 10, 0)
+        let ten = Calendar.current.date(from: c9)!
+        app.prefs.v.waterReminder = 60
+        app.dismissAlert()
+        m.checkWaterReminder(now: ten)
+        check(app.notch.alert?.title == tr("Water break"), "water reminder during the day")
+        app.notch.alert?.actions.first?.run()
+        check(m.waterToday(now: Date()).ml > 0, "logging from the reminder")
+        app.dismissAlert()
+        m.checkWaterReminder(now: ten.addingTimeInterval(600))
+        check(app.notch.alert == nil, "no second reminder within the interval")
+        c9.hour = 23
+        m.checkWaterReminder(now: Calendar.current.date(from: c9)!)
+        check(app.notch.alert == nil, "no reminders at night")
+        app.prefs.v.waterReminder = 0
+
         m.saveNow()
         let saved = JSONStore<TrackersSave>("trackers.json").load()
         check(saved?.daysLeft.count == 3 && saved?.counters?.count == 2, "trackers are saved")
@@ -75,6 +110,7 @@ enum TrackerChecks {
         for _ in 0..<12 { m.bump(b.id, by: 1) }
         let d = m.addCounter(title: "Game jam builds", color: "#C7A6FF")
         for _ in 0..<7 { m.bump(d.id, by: 1) }
+        for _ in 0..<5 { m.drink() }
         app.notch.hud = nil
     }
 }

@@ -94,6 +94,12 @@ struct PrefsData: Codable, Equatable {
     var batteryInNotch = "plug"             // plug, always, never
     var batteryLowAlert = 15                // percent, 0 = off
 
+    // Water
+    var waterGoal = 2000.0                  // ml
+    var waterSip = 250.0                    // ml per drink
+    var waterUnit = "ml"                    // ml, oz, cups
+    var waterReminder = 0.0                 // minutes between reminders, 0 = off
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
