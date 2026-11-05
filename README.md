@@ -169,3 +169,7 @@ python3 tools/make-previews.py out/
 Swift · SwiftUI · AppKit · Core Animation · EventKit · Translation · Foundation Models · Vision · Speech
 
 No third-party packages and no Xcode project: it builds with SwiftPM and the Command Line Tools.
+
+## License
+
+Saku is free and open source under the [MIT License](LICENSE).
