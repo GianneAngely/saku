@@ -17,6 +17,7 @@ struct TabContent: View {
         case .system: SystemView(app: app)
         case .trackers: TrackersView(app: app)
         case .web: WebTab(app: app)
+        case .translate: TranslateView(app: app)
         default: EmptyState(icon: tab.icon, title: tab.title, subtitle: tr("Turn this tab on in Settings"))
         }
     }

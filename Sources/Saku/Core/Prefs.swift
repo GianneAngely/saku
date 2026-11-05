@@ -107,6 +107,11 @@ struct PrefsData: Codable, Equatable {
     var webWidth = 720.0
     var webHeight = 420.0
 
+    // Translate
+    var translateProvider = "apple"         // apple, deepl, google, ai
+    var translateTo = "id"
+    var translatePrompt = "Translate this into {{to}}:\n\n{{text}}"
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]

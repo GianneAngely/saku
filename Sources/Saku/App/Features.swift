@@ -20,6 +20,10 @@ enum Features {
         SelfTest.suites.append(("system", SystemChecks.run))
         installTrackers(app)
         installWeb(app)
+        Secrets.inMemory = app.options.qa
+        app.translate = TranslateModel(prefs: app.prefs)
+        SelfTest.suites.append(("translate", TranslateChecks.run))
+        Render.scenes += TranslateChecks.scenes
     }
 
     static func installWeb(_ app: AppModel) {
