@@ -52,7 +52,9 @@ struct TrayView: View {
 @MainActor
 enum TrayToolbarExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        if !app.tray.fileURLs.isEmpty && AirDrop.isAvailable {
+            PillButton(title: tr("AirDrop all"), icon: "dot.radiowaves.left.and.right", compact: true) { AirDrop.send(app.tray.fileURLs) }
+        }
     }
 }
 
@@ -122,7 +124,9 @@ struct TrayTile: View {
 @MainActor
 enum TrayMenuExtras {
     @ViewBuilder static func view(app: AppModel, item: TrayItem) -> some View {
-        EmptyView()
+        if item.kind == .file && item.exists && AirDrop.isAvailable {
+            Button("AirDrop") { AirDrop.send([URL(fileURLWithPath: item.path)]) }
+        }
     }
 }
 
@@ -210,6 +214,6 @@ struct TrayPane: View {
 @MainActor
 enum TrayPaneExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        AirDropPane(app: app)
     }
 }

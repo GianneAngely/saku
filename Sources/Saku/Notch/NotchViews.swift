@@ -338,7 +338,7 @@ struct DropTargets: View {
                 DropTile(app: app, zone: .tray, icon: "tray.and.arrow.down.fill", title: tr("Keep in Tray"),
                          subtitle: tr("Files, links, text and images"), tint: Theme.blossom)
             }
-            if app.dropHandlers[.airdrop] != nil {
+            if app.dropHandlers[.airdrop] != nil && app.prefs.v.airdropZone {
                 DropTile(app: app, zone: .airdrop, icon: "airplayaudio", title: tr("AirDrop"),
                          subtitle: tr("Share files with a nearby device"), tint: Theme.sky)
             }

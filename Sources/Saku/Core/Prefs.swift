@@ -53,6 +53,7 @@ struct PrefsData: Codable, Equatable {
     // Tray
     var trayCopyFiles = false
     var trayOpenAfterDrop = false
+    var airdropZone = true
 
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
