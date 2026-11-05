@@ -97,6 +97,8 @@ enum Features {
     }
 
     static func installCalendar(_ app: AppModel) {
+        // QA runs start "already set up" so a demo Google account doesn't flash "Connected" into every test and picture.
+        if app.options.qa { app.prefs.v.googleAutoPicked = true }
         let source: CalendarSource = app.options.mock ? DemoCalendarSource(now: Date()) : EventKitSource()
         app.calendar = CalendarModel(app: app, source: source)
         app.addLive(priority: 40) { [weak app] in
@@ -107,6 +109,13 @@ enum Features {
         }
         let t = Timer(timeInterval: 600, repeats: true) { [weak app] _ in MainActor.assumeIsolated { app?.calendar.reload() } }
         RunLoop.main.add(t, forMode: .common)
+        // Accounts added while Saku runs (Google in System Settings) show up without a restart.
+        observe(app, { _ = ($0.notch.mode, $0.notch.tab) }) { a in
+            if a.notch.mode == .open && a.notch.tab == .calendar { a.calendar.refreshSources() }
+        }
+        NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main) { [weak app] _ in
+            MainActor.assumeIsolated { app?.calendar.refreshSources() }
+        }
         SelfTest.suites.append(("calendar", CalendarChecks.run))
         Render.scenes += CalendarChecks.scenes
     }
