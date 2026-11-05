@@ -59,6 +59,7 @@ enum Features {
         Render.scenes += TranslateChecks.scenes
         SelfTest.suites.append(("finder", FinderChecks.run))
         Render.scenes += FinderChecks.scenes
+        LiveTest.steps.append(("all features", FinderChecks.live))
     }
 
     static func installWeb(_ app: AppModel) {

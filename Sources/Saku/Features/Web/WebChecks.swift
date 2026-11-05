@@ -42,6 +42,7 @@ enum WebChecks {
     static func live(_ app: AppModel, _ c: NotchController) async {
         let w = app.web!
         c.open(.web)
+        app.notch.pinned = true   // the simulated pointer is away; page loads can outlast the close delay
         w.view.loadHTMLString("<html><body style='background:#15121A;color:#F7F2F6;font:24px -apple-system'><h1 id=t>Saku web</h1></body></html>", baseURL: nil)
         var waited = 0.0
         while w.view.isLoading && waited < 5 { try? await Task.sleep(for: .seconds(0.1)); waited += 0.1 }

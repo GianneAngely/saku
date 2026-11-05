@@ -3,7 +3,7 @@
 Everything here runs from the real binary, silently: no sound, no music playback, no permission prompts, no change to system settings. Self tests and renders use a scratch data folder, a separate settings domain and a private pasteboard, then delete them.
 
 - `Saku --selftest`: 422 logic checks (below, per suite). The Intel slice of the universal build passes them too, under Rosetta.
-- `Saku --livetest`: 45 checks against the real notch panel on screen for a few seconds, pointer simulated (the real mouse never moves).
+- `Saku --livetest`: 48 checks against the real notch panel on screen for a few seconds, pointer simulated (the real mouse never moves).
 - `Saku --render DIR`: 54 states drawn offscreen at 2x, in English and Bahasa Indonesia, reviewed by eye against `docs/DESIGN.md`. HD copies are in `previews/`.
 - `Saku --soak SECONDS`: CPU and memory while idle. Release build in /Applications, 2026-11-05: **0.02% CPU idle, 0.02% CPU with the music bars animating, about 28 MB of memory**.
 
@@ -20,7 +20,7 @@ Everything here runs from the real binary, silently: no sound, no music playback
 | Teleprompter, voice follow | 32 (layout, speech matching, speed, end, language) | 5 checks: opens, hidden from screen sharing, prompter size, stays open, sharing restored | editor, reading, countdown, mirror | Voice follow with a real microphone (needs your permission) |
 | Calendar and reminders | 19 (demo calendar) | — | month view, reminders, Home events, meeting countdown, access prompt | Real events need Calendar permission |
 | Google Calendar, new events, reminders as events | 26 (demo Mac with a Google account: spotting Google accounts, the Internet Accounts link, typed times, saving into the picked calendar with its alert, read-only calendars, ✓ and alert on ticking off) | — | new event, Google reminders, connect hint, Calendar settings | A real Google account (signing in is yours to do) |
-| All features | 35 (every feature listed and reachable, search in English and Indonesian, jumps to the right tab, mode and card) | — | All features, search, spotlit card | — |
+| All features | 35 (every feature listed and reachable, search in English and Indonesian, jumps to the right tab, mode and card) | 3 checks: the bigger page, landing on the tab with the card lit, closing clears both | All features, search, spotlit card | — |
 | Battery, network, CPU, memory | 11 + 11 (real counters) | — | charging flash, System tab | — |
 | Days left, counters, water | 24 | — | Trackers tab | — |
 | Web and bookmarks | 16 | 3 checks: renders a page, snapshot, taller Web tab | start page | — |
