@@ -48,6 +48,10 @@ final class AppModel {
     var tray: TrayModel!
     var clipboard: ClipboardModel!
     var notes: NotesModel!
+    var prompter: PrompterModel!
+
+    /// Trackpad scrolling over the open notch (the teleprompter uses it).
+    @ObservationIgnored var scrollHandler: ((CGFloat) -> Bool)?
 
     @ObservationIgnored private var hudClear: DispatchWorkItem?
     @ObservationIgnored private var alertClear: DispatchWorkItem?
@@ -152,7 +156,18 @@ final class AppModel {
         return CGSize(width: g.notchW + (wing > 0 ? 2 * (wing + 6) : 0), height: g.notchH)
     }
 
-    var openSize: CGSize { CGSize(width: prefs.v.openWidth, height: prefs.v.openHeight) }
+    var openSize: CGSize {
+        if prompter?.live == true { return prompterSize }
+        return CGSize(width: prefs.v.openWidth, height: prefs.v.openHeight)
+    }
+
+    var prompterSize: CGSize { CGSize(width: prefs.v.prompterWidth, height: notch.geo.notchH + prefs.v.prompterHeight) }
+
+    /// Largest thing the panel ever shows, so the transparent window is created big enough once.
+    var maxPanelSize: CGSize {
+        CGSize(width: max(prefs.v.openWidth, prefs.v.prompterWidth, NotchController.alertSize.width),
+               height: max(prefs.v.openHeight, notch.geo.notchH + prefs.v.prompterHeight, NotchController.alertSize.height))
+    }
 }
 
 /// Things views can ask the app shell to do.

@@ -59,10 +59,9 @@ final class NotchController: NSObject {
     func relayout() {
         let p = app.prefs.v
         app.notch.geo = NotchGeo.detect(widthOffset: p.notchWidthOffset, heightOffset: p.notchHeightOffset)
-        let canvas = CGSize(width: max(p.openWidth, Self.alertSize.width) + 2 * Self.margin,
-                            height: max(p.openHeight, Self.alertSize.height) + Self.margin)
-        panel.setFrame(geo.topRect(width: canvas.width, height: canvas.height), display: true)
-        panel.sharingType = p.hideFromScreenSharing ? .none : .readOnly
+        let m = app.maxPanelSize
+        panel.setFrame(geo.topRect(width: m.width + 2 * Self.margin, height: m.height + Self.margin), display: true)
+        panel.sharingType = p.hideFromScreenSharing || app.prompter?.live == true ? .none : .readOnly
         updateVisibility()
     }
 
@@ -70,7 +69,8 @@ final class NotchController: NSObject {
         withObservationTracking {
             let p = app.prefs.v
             _ = (p.openWidth, p.openHeight, p.notchWidthOffset, p.notchHeightOffset, p.hideFromScreenSharing,
-                 p.hideInFullscreen, p.hideWhileMirroring, p.notchlessScreens)
+                 p.hideInFullscreen, p.hideWhileMirroring, p.notchlessScreens, p.prompterWidth, p.prompterHeight)
+            _ = app.prompter?.live
         } onChange: { [weak self] in
             DispatchQueue.main.async {
                 guard let self else { return }
@@ -106,6 +106,14 @@ final class NotchController: NSObject {
 
     private func installMonitors() {
         let types: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .leftMouseDown, .leftMouseUp, .rightMouseDown]
+        if let s = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel, handler: { [weak self] e in
+            let dy = e.hasPreciseScrollingDeltas ? e.scrollingDeltaY : e.scrollingDeltaY * 12
+            let handled = MainActor.assumeIsolated { () -> Bool in
+                guard let self, self.app.notch.isOpen, self.hit(self.interactiveRect, self.pointerLocation) else { return false }
+                return self.app.scrollHandler?(dy) ?? false
+            }
+            return handled ? nil : e
+        }) { monitors.append(s) }
         if let g = NSEvent.addGlobalMonitorForEvents(matching: types, handler: { [weak self] e in
             let type = e.type
             MainActor.assumeIsolated { self?.handle(type, at: self?.pointerLocation ?? NSEvent.mouseLocation, local: false) }
@@ -228,6 +236,7 @@ final class NotchController: NSObject {
     // MARK: Open / close
 
     func open(_ tab: Tab? = nil) {
+        guard let panel else { return }
         cancelOpen()
         cancelClose()
         if let tab { app.select(tab) }
@@ -240,6 +249,7 @@ final class NotchController: NSObject {
     }
 
     func close() {
+        guard let panel else { return }
         cancelOpen()
         cancelClose()
         guard app.notch.mode != .closed else { return }
