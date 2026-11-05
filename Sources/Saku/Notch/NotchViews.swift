@@ -235,23 +235,104 @@ struct AlbumArt: View {
 }
 
 /// Four bouncing bars. Animates at 24 fps only while playing; still bars when paused.
+/// Four bouncing bars. The bounce runs as Core Animation in the window server, so playing music costs the app
+/// almost no CPU; paused (or hidden) shows still, short bars.
 struct MusicBars: View {
     var playing: Bool
     var tint: Color
     var paused = false
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 24, paused: !playing || paused)) { ctx in
-            let t = ctx.date.timeIntervalSinceReferenceDate
-            Canvas { c, size in
-                let n = 4, gap = 2.5
-                let w = (size.width - gap * Double(n - 1)) / Double(n)
-                for i in 0..<n {
-                    let phase = Double(i) * 1.7
-                    let level = playing ? 0.3 + 0.7 * abs(sin(t * (5.1 + Double(i) * 1.3) + phase) * cos(t * 1.9 + phase * 0.5)) : 0.22
-                    let h = max(3, size.height * level)
-                    let r = CGRect(x: Double(i) * (w + gap), y: (size.height - h) / 2, width: w, height: h)
-                    c.fill(Path(roundedRect: r, cornerRadius: w / 2), with: .color(tint))
+        if Render.active {
+            StillBars(tint: tint, levels: playing ? [0.55, 0.9, 0.4, 0.75] : [0.22, 0.22, 0.22, 0.22])
+        } else {
+            BarsLayer(playing: playing && !paused, color: NSColor(tint))
+        }
+    }
+}
+
+/// Same bars drawn once (offscreen pictures, where layer animations don't show).
+struct StillBars: View {
+    var tint: Color
+    var levels: [Double]
+
+    var body: some View {
+        Canvas { c, size in
+            let n = levels.count, gap = 2.5
+            let w = (size.width - gap * Double(n - 1)) / Double(n)
+            for (i, level) in levels.enumerated() {
+                let h = max(3, size.height * level)
+                let r = CGRect(x: Double(i) * (w + gap), y: (size.height - h) / 2, width: w, height: h)
+                c.fill(Path(roundedRect: r, cornerRadius: w / 2), with: .color(tint))
+            }
+        }
+    }
+}
+
+struct BarsLayer: NSViewRepresentable {
+    var playing: Bool
+    var color: NSColor
+
+    func makeNSView(context: Context) -> BarsView { BarsView() }
+
+    func updateNSView(_ v: BarsView, context: Context) {
+        v.color = color
+        v.playing = playing
+    }
+
+    final class BarsView: NSView {
+        private var bars: [CALayer] = []
+        var color: NSColor = .systemPink { didSet { if color != oldValue { bars.forEach { $0.backgroundColor = color.cgColor } } } }
+        var playing = false { didSet { if playing != oldValue { restart() } } }
+
+        override init(frame: NSRect) {
+            super.init(frame: frame)
+            wantsLayer = true
+            for _ in 0..<4 {
+                let b = CALayer()
+                b.backgroundColor = color.cgColor
+                layer?.addSublayer(b)
+                bars.append(b)
+            }
+        }
+
+        required init?(coder: NSCoder) { fatalError() }
+
+        override func layout() {
+            super.layout()
+            let gap = 2.5, n = Double(bars.count)
+            let w = (bounds.width - gap * (n - 1)) / n
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            for (i, b) in bars.enumerated() {
+                b.bounds = CGRect(x: 0, y: 0, width: w, height: bounds.height)
+                b.position = CGPoint(x: Double(i) * (w + gap) + w / 2, y: bounds.midY)
+                b.cornerRadius = w / 2
+                if !playing { b.transform = CATransform3DMakeScale(1, 0.22, 1) }
+            }
+            CATransaction.commit()
+            restart()
+        }
+
+        private func restart() {
+            let durations = [0.62, 0.48, 0.71, 0.55]
+            let shapes: [[Double]] = [[0.3, 1, 0.45, 0.85, 0.3], [0.8, 0.35, 1, 0.5, 0.8], [0.45, 0.75, 0.3, 1, 0.45], [1, 0.4, 0.7, 0.35, 1]]
+            for (i, b) in bars.enumerated() {
+                b.removeAllAnimations()
+                if playing {
+                    let a = CAKeyframeAnimation(keyPath: "transform.scale.y")
+                    a.values = shapes[i]
+                    a.duration = durations[i] * 1.6
+                    a.repeatCount = .infinity
+                    a.calculationMode = .cubic
+                    a.isRemovedOnCompletion = false
+                    b.transform = CATransform3DIdentity
+                    b.add(a, forKey: "bounce")
+                } else {
+                    CATransaction.begin()
+                    CATransaction.setAnimationDuration(0.25)
+                    b.transform = CATransform3DMakeScale(1, 0.22, 1)
+                    CATransaction.commit()
                 }
             }
         }

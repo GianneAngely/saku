@@ -87,6 +87,25 @@ enum Render {
         app.notch.dropTarget = nil
         app.clock = Self.fixedDate
         app.keepOpenReasons = []
+        // Feature state from earlier scenes must not leak into the next picture.
+        app.prefs.v.musicLiveActivity = false
+        app.prefs.v.meetingHeadsUp = false
+        if let t = app.timers {
+            t.pomo = Pomodoro()
+            t.countdown = Countdown()
+            t.stopwatch = Stopwatch()
+        }
+        app.battery?.clearFlash()
+        if app.prompter?.live == true { app.prompter.exit() }
+        app.mirror?.stop()
+        app.clipboard?.mode = 0
+        if let m = app.music, !m.playing, m.track != nil { m.playPause() }
+        // Demo calendar follows the same frozen clock as the date in the pictures.
+        if let demo = app.calendar?.source as? DemoCalendarSource {
+            demo.now = Self.fixedDate
+            demo.eventAccess = .granted
+            app.calendar.reload()
+        }
     }
 
     /// Thursday 5 November 2026, 15:42, so every render shows the same clock.

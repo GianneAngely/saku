@@ -76,7 +76,7 @@ enum CalendarChecks {
             app.notch.tab = .calendar
         },
         Render.Scene(name: "closed-meeting", settle: 0.4) { app in
-            app.prefs.v.musicLiveActivity = false
+            app.prefs.v.meetingHeadsUp = true
             app.calendar.reload()
         },
         Render.Scene(name: "open-calendar-access", settle: 0.4) { app in

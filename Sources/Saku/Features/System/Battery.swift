@@ -133,6 +133,11 @@ final class BatteryModel {
         }
     }
 
+    func clearFlash() {
+        flashWork?.cancel()
+        flashing = false
+    }
+
     private func flash() {
         flashing = true
         flashWork?.cancel()
