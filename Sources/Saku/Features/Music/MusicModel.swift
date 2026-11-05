@@ -30,7 +30,7 @@ final class MusicModel {
 
     init(prefs: Prefs, mock: Bool) {
         self.prefs = prefs
-        players = mock ? [MockPlayer()] : [SpotifyPlayer(), AppleMusicPlayer()]
+        players = mock ? [MockPlayer()] : [SpotifyPlayer(), AppleMusicPlayer(), BrowserPlayer(prefs: prefs)]
         for p in players {
             p.onChange = { [weak self] s in self?.receive(s) }
         }

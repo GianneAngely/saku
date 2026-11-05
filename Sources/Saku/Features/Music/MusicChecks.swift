@@ -60,6 +60,17 @@ enum MusicChecks {
         check(NSColor(ArtworkColor.tint(of: grey)).usingColorSpace(.sRGB)!.saturationComponent < 0.1, "grey cover gives soft white")
 
         check(SeekBar.time(65) == "1:05" && SeekBar.time(3725) == "1:02:05", "time format")
+
+        // Browser music: scan result parsing and script building (the browser itself is never touched here).
+        let raw = #"12|345|{"title":"Lofi Girl - YouTube","artist":"Lofi Girl","album":"","artwork":"https://i.ytimg.com/a.jpg","playing":true,"position":61.5,"duration":0,"host":"www.youtube.com"}"#
+        let f = BrowserMusic.parse(raw, browser: "chrome")
+        check(f?.window == "12" && f?.tab == "345" && f?.state.track?.title == "Lofi Girl" && f?.state.playing == true, "browser scan result")
+        check(f?.state.track?.duration == 0 && f?.state.position == 61.5 && f?.artwork?.host() == "i.ytimg.com", "live streams have no duration")
+        check(BrowserMusic.parse("", browser: "chrome") == nil && BrowserMusic.parse("1|2|nope", browser: "safari") == nil, "empty scans")
+        check(BrowserMusic.chromeScan().contains("execute t javascript") && BrowserMusic.safariScan().contains("do JavaScript"), "scan scripts")
+        check(BrowserMusic.run("x()", in: f!).contains("tab id 345 of window id 12"), "controls target the found tab")
+        let compiled = NSAppleScript(source: "return 1")
+        check(compiled != nil, "AppleScript available")
     }
 
     static let scenes: [Render.Scene] = [
@@ -74,4 +85,39 @@ enum MusicChecks {
             if $0.music.playing { $0.music.playPause() }
         },
     ]
+}
+
+import WebKit
+
+/// Runs the browser-music JavaScript in a real (offscreen) web page: metadata, play/pause and next. Nothing plays.
+@MainActor
+enum BrowserMusicLive {
+    static func run(_ app: AppModel, _ c: NotchController) async {
+        let w = WKWebView(frame: CGRect(x: 0, y: 0, width: 400, height: 300))
+        let html = """
+        <html><body>
+        <video id=v muted></video>
+        <button class="ytp-next-button" onclick="window.nextClicked = (window.nextClicked||0) + 1">next</button>
+        <script>navigator.mediaSession.metadata = new MediaMetadata({ title: 'Sakura Lofi', artist: 'Pocket Radio', album: 'Pixel Dreams',
+          artwork: [{ src: 'https://example.com/96.png', sizes: '96x96' }, { src: 'https://example.com/512.png', sizes: '512x512' }] });</script>
+        </body></html>
+        """
+        w.loadHTMLString(html, baseURL: URL(string: "https://music.youtube.com/"))
+        var waited = 0.0
+        while w.isLoading && waited < 5 { try? await Task.sleep(for: .seconds(0.1)); waited += 0.1 }
+        try? await Task.sleep(for: .seconds(0.2))
+        let json = (try? await w.evaluateJavaScript(BrowserMusic.probe)) as? String ?? ""
+        let f = BrowserMusic.parse("1|2|" + json, browser: "chrome")
+        LiveTest.expect(f?.state.track?.title == "Sakura Lofi" && f?.state.track?.artist == "Pocket Radio", "probe reads Media Session metadata", json)
+        LiveTest.expect(f?.artwork?.absoluteString == "https://example.com/512.png", "probe picks the largest cover")
+        LiveTest.expect(f?.state.playing == false, "probe sees paused media")
+        let next = (try? await w.evaluateJavaScript(BrowserMusic.next)) as? String
+        let clicked = (try? await w.evaluateJavaScript("window.nextClicked || 0")) as? Int
+        LiveTest.expect(next == "ok" && clicked == 1, "next presses the site's next button")
+        let empty = WKWebView(frame: .zero)
+        empty.loadHTMLString("<html><body>no media</body></html>", baseURL: nil)
+        try? await Task.sleep(for: .seconds(0.5))
+        let none = (try? await empty.evaluateJavaScript(BrowserMusic.probe)) as? String
+        LiveTest.expect(none == "", "pages without media are skipped")
+    }
 }

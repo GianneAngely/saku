@@ -179,6 +179,7 @@ enum Features {
             return .music(artwork: m.artwork, playing: m.playing, tint: app.prefs.v.musicAlbumTint ? m.tint : Theme.blossom)
         }
         SelfTest.suites.append(("music", MusicChecks.run))
+        LiveTest.steps.append(("browser music", BrowserMusicLive.run))
         Render.scenes += MusicChecks.scenes
     }
 

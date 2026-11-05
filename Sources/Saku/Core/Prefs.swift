@@ -39,6 +39,7 @@ struct PrefsData: Codable, Equatable {
     var musicCoverBackground = false
     var musicPreferredPlayer = "auto"       // auto, spotify, music, browser
     var musicOnHome = true
+    var musicBrowser = false
 
     // Timers
     var pomoFocus = 25.0                    // minutes
