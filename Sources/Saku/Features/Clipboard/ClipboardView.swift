@@ -180,6 +180,11 @@ struct ClipPreview: View {
                     Spacer(minLength: 4)
                     IconButton(symbol: item.pinned ? "pin.fill" : "pin", size: 10.5, tint: item.pinned ? Theme.blossom : Theme.text3, hit: 24, help: tr("Pin")) { clip.togglePin(item) }
                     IconButton(symbol: "trash", size: 10.5, tint: Theme.text3, hit: 24, help: tr("Delete")) { clip.delete(item) }
+                    if item.kind == .image {
+                        IconButton(symbol: "text.viewfinder", size: 11, tint: Theme.lavender, hit: 24, help: tr("Copy text from image")) {
+                            OCR.copyText(from: clip.image(of: item), app: app)
+                        }
+                    }
                     PillButton(title: tr("Copy"), icon: "doc.on.doc", primary: true, tint: Theme.sky, compact: true) { use(item) }
                 }
             }
@@ -220,7 +225,9 @@ struct ClipActions: View {
 @MainActor
 enum ClipMenuExtras {
     @ViewBuilder static func view(app: AppModel, item: ClipItem) -> some View {
-        EmptyView()
+        if item.kind == .image {
+            Button(tr("Copy text from image")) { OCR.copyText(from: app.clipboard.image(of: item), app: app) }
+        }
     }
 }
 

@@ -127,6 +127,9 @@ enum TrayMenuExtras {
         if item.kind == .file && item.exists && AirDrop.isAvailable {
             Button("AirDrop") { AirDrop.send([URL(fileURLWithPath: item.path)]) }
         }
+        if item.kind == .file && item.exists && OCR.isImage(path: item.path) {
+            Button(tr("Copy text from image")) { OCR.copyText(from: NSImage(contentsOfFile: item.path), app: app) }
+        }
     }
 }
 
