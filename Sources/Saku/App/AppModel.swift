@@ -53,6 +53,7 @@ final class AppModel {
     var battery: BatteryModel!
     var monitor: SystemMonitor!
     var trackers: TrackersModel!
+    var web: WebModel!
 
     /// Trackpad scrolling over the open notch (the teleprompter uses it).
     @ObservationIgnored var scrollHandler: ((CGFloat) -> Bool)?
@@ -162,6 +163,7 @@ final class AppModel {
 
     var openSize: CGSize {
         if prompter?.live == true { return prompterSize }
+        if notch.tab == .web && notch.mode == .open { return CGSize(width: max(prefs.v.openWidth, prefs.v.webWidth), height: max(prefs.v.openHeight, prefs.v.webHeight)) }
         return CGSize(width: prefs.v.openWidth, height: prefs.v.openHeight)
     }
 
@@ -169,8 +171,8 @@ final class AppModel {
 
     /// Largest thing the panel ever shows, so the transparent window is created big enough once.
     var maxPanelSize: CGSize {
-        CGSize(width: max(prefs.v.openWidth, prefs.v.prompterWidth, NotchController.alertSize.width),
-               height: max(prefs.v.openHeight, notch.geo.notchH + prefs.v.prompterHeight, NotchController.alertSize.height))
+        CGSize(width: max(prefs.v.openWidth, prefs.v.prompterWidth, prefs.v.webWidth, NotchController.alertSize.width),
+               height: max(prefs.v.openHeight, notch.geo.notchH + prefs.v.prompterHeight, prefs.v.webHeight, NotchController.alertSize.height))
     }
 }
 

@@ -69,7 +69,7 @@ final class NotchController: NSObject {
         withObservationTracking {
             let p = app.prefs.v
             _ = (p.openWidth, p.openHeight, p.notchWidthOffset, p.notchHeightOffset, p.hideFromScreenSharing,
-                 p.hideInFullscreen, p.hideWhileMirroring, p.notchlessScreens, p.prompterWidth, p.prompterHeight)
+                 p.hideInFullscreen, p.hideWhileMirroring, p.notchlessScreens, p.prompterWidth, p.prompterHeight, p.webWidth, p.webHeight)
             _ = app.prompter?.live
         } onChange: { [weak self] in
             DispatchQueue.main.async {

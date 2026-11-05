@@ -19,6 +19,14 @@ enum Features {
         app.monitor = SystemMonitor()
         SelfTest.suites.append(("system", SystemChecks.run))
         installTrackers(app)
+        installWeb(app)
+    }
+
+    static func installWeb(_ app: AppModel) {
+        app.web = WebModel(prefs: app.prefs)
+        SelfTest.suites.append(("web", WebChecks.run))
+        Render.scenes += WebChecks.scenes
+        LiveTest.steps.append(("web", WebChecks.live))
     }
 
     static func installTrackers(_ app: AppModel) {
