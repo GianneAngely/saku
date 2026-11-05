@@ -30,11 +30,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         Features.install(app)
 
-        if let dir = options.iconDir {
-            IconArt.writeIconset(to: URL(fileURLWithPath: dir, isDirectory: true))
-            QA.cleanUp()
-            exit(0)
-        }
         if let dir = options.renderDir {
             Render.run(app: app, to: URL(fileURLWithPath: dir, isDirectory: true))
             NSApp.terminate(nil)

@@ -11,7 +11,6 @@ struct LaunchOptions {
     var renderDir: String?
     var selfTest = false
     var liveTest = false
-    var iconDir: String?
     var soak: Double?
 
     static func parse(_ args: [String]) -> LaunchOptions {
@@ -26,13 +25,12 @@ struct LaunchOptions {
             case "--render": i += 1; if i < args.count { o.renderDir = args[i] }
             case "--selftest": o.selfTest = true
             case "--livetest": o.liveTest = true
-            case "--make-icon": i += 1; if i < args.count { o.iconDir = args[i] }
             case "--soak": i += 1; if i < args.count { o.soak = Double(args[i]) }
             default: break
             }
             i += 1
         }
-        if o.renderDir != nil || o.selfTest || o.liveTest || o.iconDir != nil || o.soak != nil { o.qa = true; o.mute = true; o.mock = true }
+        if o.renderDir != nil || o.selfTest || o.liveTest || o.soak != nil { o.qa = true; o.mute = true; o.mock = true }
         return o
     }
 }
