@@ -28,17 +28,36 @@ struct JSONStore<T: Codable> {
     func load() -> T? {
         guard let data = try? Data(contentsOf: url) else { return nil }
         let dec = JSONDecoder()
-        dec.dateDecodingStrategy = .iso8601
+        dec.dateDecodingStrategy = .custom { d in
+            let s = try d.singleValueContainer().decode(String.self)
+            guard let date = ISO.fractional.date(from: s) ?? ISO.plain.date(from: s) else {
+                throw DecodingError.dataCorrupted(.init(codingPath: d.codingPath, debugDescription: "bad date \(s)"))
+            }
+            return date
+        }
         return try? dec.decode(T.self, from: data)
     }
 
     func save(_ value: T) {
         let enc = JSONEncoder()
-        enc.dateEncodingStrategy = .iso8601
+        enc.dateEncodingStrategy = .custom { date, e in
+            var c = e.singleValueContainer()
+            try c.encode(ISO.fractional.string(from: date))
+        }
         enc.outputFormatting = [.sortedKeys]
         guard let data = try? enc.encode(value) else { return }
         try? data.write(to: url, options: .atomic)
     }
+}
+
+/// ISO 8601 with milliseconds, so saved dates come back exactly (timers depend on it).
+enum ISO {
+    nonisolated(unsafe) static let fractional: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+    nonisolated(unsafe) static let plain = ISO8601DateFormatter()
 }
 
 /// Runs the last scheduled block after `delay` of quiet. Main thread only.
