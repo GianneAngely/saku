@@ -14,6 +14,7 @@ struct TabContent: View {
         case .notes: NotesView(app: app)
         case .prompter: PrompterTab(app: app)
         case .calendar: CalendarView(app: app)
+        case .system: SystemView(app: app)
         default: EmptyState(icon: tab.icon, title: tab.title, subtitle: tr("Turn this tab on in Settings"))
         }
     }

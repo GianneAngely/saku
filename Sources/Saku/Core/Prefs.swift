@@ -90,6 +90,10 @@ struct PrefsData: Codable, Equatable {
     var calendarIDs: [String] = []          // empty = all
     var reminderListIDs: [String] = []
 
+    // Battery and system
+    var batteryInNotch = "plug"             // plug, always, never
+    var batteryLowAlert = 15                // percent, 0 = off
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
