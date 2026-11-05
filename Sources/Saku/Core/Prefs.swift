@@ -65,6 +65,10 @@ struct PrefsData: Codable, Equatable {
     var clipboardIgnoreApps: [String] = ["com.1password.1password", "com.agilebits.onepassword7", "com.apple.keychainaccess",
                                          "com.bitwarden.desktop", "com.apple.Passwords"]
 
+    // Notes
+    var notesFontSize = 12.5
+    var notesWordCount = true
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]

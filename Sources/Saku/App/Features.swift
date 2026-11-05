@@ -11,6 +11,13 @@ enum Features {
         installTray(app)
         installAirDrop(app)
         installClipboard(app)
+        installNotes(app)
+    }
+
+    static func installNotes(_ app: AppModel) {
+        app.notes = NotesModel()
+        SelfTest.suites.append(("notes", NotesChecks.run))
+        Render.scenes += NotesChecks.scenes
     }
 
     static func installClipboard(_ app: AppModel) {
@@ -70,6 +77,7 @@ enum Features {
     }
 
     static func shutdown(_ app: AppModel) {
+        app.notes?.saveNow()
         if let clip = app.clipboard {
             if app.prefs.v.clipboardClearOnQuit { clip.clearHistory() }
             clip.saveNow()

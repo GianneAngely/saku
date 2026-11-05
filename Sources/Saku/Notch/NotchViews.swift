@@ -76,7 +76,7 @@ struct NotchRootView: View {
             .clipShape(Rectangle())
         }
         .frame(width: size.width + 2 * ear, height: size.height)
-        .clipShape(shape)
+        .modifier(LiveClip(shape: shape))
         .background(alignment: .top) {
             shape.fill(Color.black.opacity(open || alert ? 0.001 : 0))   // keeps hit testing inside the shape
                 .frame(width: size.width + 2 * ear, height: size.height)
@@ -84,6 +84,15 @@ struct NotchRootView: View {
         .animation(open ? Theme.openSpring : Theme.closeSpring, value: size)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .environment(\.colorScheme, .dark)
+    }
+}
+
+/// Clips the content to the notch while it springs open. Offscreen renders skip it: the content already sits
+/// inside the shape at rest, and AppKit's layer snapshot (cacheDisplay) drops SF Symbol tints inside masked layers.
+struct LiveClip<S: Shape>: ViewModifier {
+    let shape: S
+    func body(content: Content) -> some View {
+        if Render.active { content } else { content.clipShape(shape) }
     }
 }
 
@@ -317,6 +326,7 @@ struct TabIcon: View {
         Button { withAnimation(Theme.fade) { app.select(tab) } } label: {
             Image(systemName: tab.icon)
                 .font(.system(size: 12.5, weight: .semibold))
+                .symbolRenderingMode(.monochrome)
                 .foregroundStyle(on ? Theme.blossom : hovering ? Theme.text : Theme.text3)
                 .frame(width: 28, height: 24)
                 .background(Capsule().fill(Color.white.opacity(on ? 0.11 : hovering ? 0.06 : 0)))

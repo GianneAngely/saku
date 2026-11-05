@@ -26,7 +26,11 @@ enum Render {
         Scene(name: "open-glass") { $0.notch.mode = .open; $0.prefs.v.glassPanel = true },
     ]
 
+    /// True while drawing offscreen (see LiveClip).
+    static var active = false
+
     static func run(app: AppModel, to dir: URL) {
+        active = true
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         app.notch.geo = NotchGeo.detect()
         let g = app.notch.geo
