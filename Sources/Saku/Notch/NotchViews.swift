@@ -296,19 +296,42 @@ struct OpenPanel: View {
 struct TabBar: View {
     let app: AppModel
 
+    /// How the visible tabs split around the camera; extra tabs go into a "more" menu when they don't fit.
+    struct Layout: Equatable {
+        var left: [Tab]
+        var right: [Tab]
+        var more: [Tab]
+    }
+
+    static let iconWidth = 27.0
+    static let toolsWidth = 60.0       // divider, pin and settings on the right
+
+    static func layout(tabs: [Tab], panelWidth: Double, notchWidth: Double) -> Layout {
+        let side = (panelWidth - notchWidth - 20 - 32) / 2
+        let capL = max(1, Int(side / iconWidth))
+        let capR = max(0, Int((side - toolsWidth) / iconWidth))
+        if tabs.count <= capL + capR {
+            let half = min(capL, (tabs.count + 1) / 2)
+            return Layout(left: Array(tabs.prefix(half)), right: Array(tabs.dropFirst(half)), more: [])
+        }
+        let right = max(0, capR - 1)
+        return Layout(left: Array(tabs.prefix(capL)), right: Array(tabs.dropFirst(capL).prefix(right)),
+                      more: Array(tabs.dropFirst(capL + right)))
+    }
+
     var body: some View {
-        let tabs = app.visibleTabs
-        let half = (tabs.count + 1) / 2
+        let l = Self.layout(tabs: app.visibleTabs, panelWidth: app.openSize.width, notchWidth: app.notch.geo.notchW)
         HStack(spacing: 0) {
-            HStack(spacing: 1) {
-                ForEach(Array(tabs.prefix(half))) { TabIcon(app: app, tab: $0) }
+            HStack(spacing: 0) {
+                ForEach(l.left) { TabIcon(app: app, tab: $0) }
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity)
             Color.clear.frame(width: app.notch.geo.notchW + 20)
-            HStack(spacing: 1) {
+            HStack(spacing: 0) {
                 Spacer(minLength: 0)
-                ForEach(Array(tabs.dropFirst(half))) { TabIcon(app: app, tab: $0) }
+                ForEach(l.right) { TabIcon(app: app, tab: $0) }
+                if !l.more.isEmpty { MoreTabs(app: app, tabs: l.more) }
                 Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 14).padding(.horizontal, 5)
                 IconButton(symbol: app.notch.pinned ? "pin.fill" : "pin", size: 11.5,
                            tint: app.notch.pinned ? Theme.blossom : Theme.text3, hit: 24, help: tr("Keep open")) {
@@ -325,6 +348,28 @@ struct TabBar: View {
     }
 }
 
+/// Tabs that did not fit, in a small menu.
+struct MoreTabs: View {
+    let app: AppModel
+    let tabs: [Tab]
+
+    var body: some View {
+        let on = tabs.contains(app.notch.tab)
+        Menu {
+            ForEach(tabs) { t in
+                Button { withAnimation(Theme.fade) { app.select(t) } } label: { Label(t.title, systemImage: t.icon) }
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle.fill").font(.system(size: 12.5, weight: .semibold))
+                .foregroundStyle(on ? Theme.blossom : Theme.text3)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .frame(width: TabBar.iconWidth, height: 24)
+        .help(tr("More"))
+    }
+}
+
 struct TabIcon: View {
     let app: AppModel
     let tab: Tab
@@ -337,7 +382,7 @@ struct TabIcon: View {
                 .font(.system(size: 12.5, weight: .semibold))
                 .symbolRenderingMode(.monochrome)
                 .foregroundStyle(on ? Theme.blossom : hovering ? Theme.text : Theme.text3)
-                .frame(width: 28, height: 24)
+                .frame(width: TabBar.iconWidth, height: 24)
                 .background(Capsule().fill(Color.white.opacity(on ? 0.11 : hovering ? 0.06 : 0)))
                 .contentShape(Capsule())
         }

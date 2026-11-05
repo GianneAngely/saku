@@ -139,7 +139,7 @@ struct AppsView: View {
 @MainActor
 enum AppsExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        ShortcutsColumn(app: app)
     }
 }
 
@@ -210,6 +210,6 @@ struct AppsPane: View {
 @MainActor
 enum AppsPaneExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        ShortcutsSection(app: app)
     }
 }

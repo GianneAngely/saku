@@ -125,6 +125,9 @@ struct PrefsData: Codable, Equatable {
     var mirrorRingLight = false
     var mirrorEffect = "natural"
 
+    // Shortcuts
+    var shortcutsShown: [String] = []      // empty = all
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]

@@ -88,6 +88,16 @@ enum SelfTest {
         app.prefs.v.hiddenTabs = []
         check(app.visibleTabs.first == .home, "home first by default")
 
+        // Tab bar: everything fits at the default width, overflow goes into a menu.
+        let eight = Array(Tab.allCases.prefix(8)), all = Tab.allCases
+        let l8 = TabBar.layout(tabs: eight, panelWidth: 660, notchWidth: 185)
+        check(l8.more.isEmpty && l8.left.count + l8.right.count == 8 && l8.left.count >= l8.right.count, "eight tabs fit around the camera")
+        let l15 = TabBar.layout(tabs: all, panelWidth: 660, notchWidth: 185)
+        check(!l15.more.isEmpty && l15.left.count + l15.right.count + l15.more.count == all.count, "extra tabs go into the more menu")
+        let side = (660.0 - 185 - 20 - 32) / 2
+        check(Double(l15.left.count) * TabBar.iconWidth <= side && Double(l15.right.count + 1) * TabBar.iconWidth + TabBar.toolsWidth <= side, "icons never overflow")
+        check(TabBar.layout(tabs: all, panelWidth: 820, notchWidth: 185).more.count < l15.more.count, "a wider panel shows more tabs")
+
         // JSON store round trip.
         struct Sample: Codable, Equatable { var a: Int; var d: Date }
         let store = JSONStore<Sample>("selftest-sample.json")
