@@ -14,6 +14,25 @@ enum Features {
         installNotes(app)
         installPrompter(app)
         installCalendar(app)
+        installBattery(app)
+    }
+
+    static func installBattery(_ app: AppModel) {
+        app.battery = BatteryModel(app: app, live: !app.options.mock)
+        if app.options.mock {
+            app.battery.apply(BatteryInfo(present: true, level: 76, charging: false, onAC: false, minutesToEmpty: 312,
+                                          health: 88, cycles: 113, temperature: 31.5))
+        }
+        app.addLive(priority: 90) { [weak app] in
+            guard let app, app.prefs.v.batteryInNotch != "always" else { return nil }
+            return app.battery.liveActivity()
+        }
+        app.addLive(priority: 5) { [weak app] in
+            guard let app, app.prefs.v.batteryInNotch == "always", app.prefs.v.closedStyle == "auto" else { return nil }
+            return app.battery.liveActivity()
+        }
+        SelfTest.suites.append(("battery", BatteryChecks.run))
+        Render.scenes += BatteryChecks.scenes
     }
 
     static func installCalendar(_ app: AppModel) {
