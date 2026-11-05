@@ -33,7 +33,7 @@ struct HomeView: View {
         HStack(spacing: 10) {
             if app.prefs.v.musicOnHome, app.music != nil {
                 MusicCard(app: app)
-                TodayCard(app: app).frame(width: 200)
+                TodayCard(app: app).frame(width: 214)
             } else {
                 TodayCard(app: app).frame(width: 210)
                 GlanceColumn(app: app)
@@ -49,7 +49,11 @@ struct TodayCard: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 2) {
-                Text(weekday).font(Theme.font(11, .bold)).foregroundStyle(Theme.blossom)
+                HStack {
+                    Text(weekday).font(Theme.font(11, .bold)).foregroundStyle(Theme.blossom)
+                    Spacer(minLength: 4)
+                    if app.weather != nil && app.prefs.v.weatherOnHome { WeatherGlance(app: app) }
+                }
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Text(day).font(Theme.font(34, .heavy)).foregroundStyle(Theme.text)
                     Text(month).font(Theme.font(13, .semibold)).foregroundStyle(Theme.text2)
