@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- The Google Tasks setup guide is in English too, and Settings › To-do opens it in Saku's language.
+
 ## 1.2.1
 
 - Settings › To-do shows in the sidebar. Before, it only opened from the To-do tab.
