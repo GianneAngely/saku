@@ -59,6 +59,7 @@ enum Render {
                 ("settings-appearance", AnyView(AppearancePane(app: app))),
                 ("settings-keyboard", AnyView(KeyboardPane(app: app))),
                 ("settings-music", AnyView(MusicPane(app: app))),
+                ("settings-calendar", AnyView(CalendarPane(app: app))),
             ]
             for (name, v) in panes {
                 let size = CGSize(width: 620, height: 640)
@@ -104,6 +105,8 @@ enum Render {
         if let demo = app.calendar?.source as? DemoCalendarSource {
             demo.now = Self.fixedDate
             demo.eventAccess = .granted
+            demo.clearSaved()
+            app.calendar.composing = nil
             app.calendar.reload()
         }
     }
