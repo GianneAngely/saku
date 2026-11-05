@@ -84,7 +84,7 @@ struct AppearancePane: View {
                 Picker(tr("Idle mark"), selection: $prefs.v.idleMark) {
                     Text(tr("None")).tag("none")
                     Text(tr("Blossom")).tag("blossom")
-                    Text("Mascot").tag("mascot")
+                    if AppResources.mascot != nil { Text(tr("Mascot")).tag("mascot") }
                 }
                 ColorPicker(tr("Date colour"), selection: colorBinding(\.dateColor), supportsOpacity: false)
                 ColorPicker(tr("Time colour"), selection: colorBinding(\.timeColor), supportsOpacity: false)

@@ -549,7 +549,6 @@ ID = {
 "Version %@": "Versi %@",
 "Show data folder": "Tampilkan folder data",
 "Feature list": "Daftar fitur",
-"Made by Gianne Angely. No accounts, no tracking, everything stays on this Mac.": "Dibuat oleh Gianne Angely. Tanpa akun, tanpa pelacakan, semuanya tetap di Mac ini.",
 "Welcome": "Selamat datang",
 "General": "Umum",
 "Appearance": "Tampilan",
@@ -724,4 +723,6 @@ ID = {
 "Turn on Saku with full access in Privacy & Security › Calendars, then come back. macOS only asks once.": "Nyalakan Saku dengan akses penuh di Privasi & Keamanan › Kalender, lalu kembali ke sini. macOS cuma bertanya sekali.",
 "Waiting for Google… sign in in System Settings": "Menunggu Google… masuk di Pengaturan Sistem",
 "Waiting for your Google account…": "Menunggu akun Google kamu…",
+"Made by Gianne Angely. No accounts, no tracking, everything stays on this Mac.": "Dibuat oleh Gianne Angely. Tanpa akun, tanpa pelacakan, semuanya tetap di Mac ini.",
+"Mascot": "Maskot",
 }

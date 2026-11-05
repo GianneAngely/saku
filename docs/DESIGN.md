@@ -47,7 +47,7 @@ Sizes: 22 heavy for big timers, 14 semibold titles, 12 body, 10.5 captions. Lett
 2. **Live activity** — wings: music (cover + bars), timer (ring + time), charging (bolt + %), next meeting (dot + "in 8m"), date. "Auto" picks by priority: alert, running timer, charging flash, music, meeting in 10 min, then the chosen idle style.
 3. **Open** — hover opens after the minimum hover time (default 0.12 s). Leaving closes after the close delay (default 0.25 s), except while typing, dragging or pinned.
 4. **Drop** — dragging files near the notch opens two big targets: Tray and AirDrop.
-5. **Alert** — timers and reminders open a compact card with Mascot, a title, a hint and one or two buttons.
+5. **Alert** — timers and reminders open a compact card with the alert's symbol, a title, a hint and one or two buttons.
 6. **Prompter** — the panel turns into a tall reading window under the camera.
 
 ## Motion

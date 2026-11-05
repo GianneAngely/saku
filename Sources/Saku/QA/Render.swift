@@ -16,7 +16,6 @@ enum Render {
         Scene(name: "closed-plain") { _ in },
         Scene(name: "closed-date") { $0.prefs.v.closedStyle = "date" },
         Scene(name: "closed-blossom") { $0.prefs.v.idleMark = "blossom" },
-        Scene(name: "closed-mascot") { $0.prefs.v.idleMark = "mascot" },
         Scene(name: "closed-hud") { $0.notch.hud = NotchHUD(icon: "checkmark.circle.fill", text: "Copied", tint: Theme.mint) },
         Scene(name: "open-home") { $0.notch.mode = .open; $0.notch.tab = .home },
         Scene(name: "alert", settle: 0.9) {

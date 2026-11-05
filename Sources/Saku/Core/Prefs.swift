@@ -27,7 +27,7 @@ struct PrefsData: Codable, Equatable {
     var closeDelay = 0.25
     var glassPanel = false
     var closedStyle = "auto"                // auto, waveform, date, pomodoro, countdown, stopwatch, none
-    var idleMark = "none"                   // none, blossom, mascot
+    var idleMark = "none"                   // none, blossom, mascot (a picture in the data folder)
     var dateColor = "#F7F2F6"
     var timeColor = "#FF7EB6"
     var use24Hour = true

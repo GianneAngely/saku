@@ -8,11 +8,11 @@ enum WebChecks {
         let g = SearchEngine.google
         check(WebModel.target(for: "https://apple.com/mac", engine: g)?.absoluteString == "https://apple.com/mac", "full URLs load as typed")
         check(WebModel.target(for: "itch.io", engine: g)?.absoluteString == "https://itch.io", "a bare domain gets https")
-        check(WebModel.target(for: "localhost:4321/mascot", engine: g)?.absoluteString == "http://localhost:4321/mascot", "localhost works")
+        check(WebModel.target(for: "localhost:4321/sakura", engine: g)?.absoluteString == "http://localhost:4321/sakura", "localhost works")
         check(WebModel.target(for: "how tall is mount agung", engine: g)?.absoluteString == "https://www.google.com/search?q=how%20tall%20is%20mount%20agung", "words search")
         check(WebModel.target(for: "file.v2", engine: .duckduckgo)?.host() == "duckduckgo.com", "a dotted word with digits searches")
         check(WebModel.target(for: "   ", engine: g) == nil, "empty input does nothing")
-        check(SearchEngine.allCases.allSatisfy { $0.url(for: "mascot") != nil }, "every engine builds a search URL")
+        check(SearchEngine.allCases.allSatisfy { $0.url(for: "sakura") != nil }, "every engine builds a search URL")
 
         app.notch.mode = .open
         app.notch.tab = .web

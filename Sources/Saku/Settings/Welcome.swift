@@ -10,7 +10,11 @@ struct WelcomePane: View {
         ScrollView {
             VStack(spacing: 18) {
                 HStack(spacing: 16) {
-                    MascotTile(size: 82)
+                    if AppResources.mascot != nil {
+                        MascotTile(size: 82)
+                    } else if let icon = AppResources.appIcon {
+                        Image(nsImage: icon).resizable().frame(width: 82, height: 82)
+                    }
                     VStack(alignment: .leading, spacing: 4) {
                         Text(tr("Hi, this is Saku")).font(.system(size: 26, weight: .heavy, design: .rounded))
                         Text(tr("A pocket at the top of your Mac. Everything lives in the notch, right under the camera."))
