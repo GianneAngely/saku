@@ -86,7 +86,7 @@ Saku never asks at launch. Each prompt appears the first time you use the featur
 
 | Permission | Asked when | Why |
 | --- | --- | --- |
-| Automation: Spotify, Music | You first play or skip from the notch | Read the song and control the player |
+| Automation: Spotify, Music | You press **Enable controls** on the music card | Read the song and control the player |
 | Automation: Chrome, Safari | Only if you turn on browser music | Read and control the tab that's playing |
 | Calendars | Calendar tab › Allow access | Your events, the meeting countdown, new events, Google Calendar |
 | Reminders | Calendar tab › Reminders | Your reminder lists |
@@ -137,7 +137,7 @@ Settings › Calendar › **Connect Google Calendar**. macOS opens Internet Acco
 <details>
 <summary><b>Spotify doesn't show up.</b></summary>
 
-Play something in Spotify, then press play in the notch once: macOS asks whether Saku may control Spotify. If you said no before, turn it on in System Settings › Privacy & Security › Automation.
+Play something in Spotify, then press **Enable controls** on the music card: macOS asks once whether Saku may control Spotify. If you said no before, turn it on in System Settings › Privacy & Security › Automation.
 </details>
 
 <details>
@@ -149,7 +149,7 @@ Two notch apps fight over the same space, so quit the other one while you use Sa
 <details>
 <summary><b>How do I uninstall it?</b></summary>
 
-Quit Saku (Settings › General › Quit, or the menu bar icon), then move it to the Bin. To remove its data too, delete `~/Library/Application Support/Saku`.
+Quit Saku from its menu bar icon (the little blossom), then move it to the Trash. To remove its data too, delete `~/Library/Application Support/Saku`.
 </details>
 
 ## Develop
