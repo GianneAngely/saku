@@ -1,12 +1,39 @@
 # 🌸 Saku
 
-Saku turns the MacBook camera notch into **a little pocket of tools**. Hover over the notch and it blooms open with your music, timers, files, clipboard, notes, calendar, an AI assistant and a teleprompter that scrolls right under the camera. It runs natively on macOS, needs no account, and every feature is free.
+Saku turns the MacBook notch into **a little pocket of tools**. Hover the camera and it blooms open with your music, timers, files, clipboard, calendar, an AI assistant and a teleprompter that scrolls right under the lens. It's native, free, and needs no account.
 
-![Saku: the open notch with music and today's events, a Pomodoro timer, the teleprompter under the camera, the file tray, clipboard history and the on-device AI assistant](screenshot.png)
+![Saku opening from the notch: music, timers, the teleprompter, calendar and the All features page](previews/saku-tour.gif)
+
+**[Download Saku](https://github.com/GianneAngely/saku/releases/latest)** for macOS 26 or later, on Apple silicon and Intel Macs. Every feature is free.
+
+## Why Saku
+
+- **Everything is free.** Music control, timers and the rest aren't behind a paid upgrade.
+- **A teleprompter under the camera.** Read your script while looking at the lens; it can follow your voice and is hidden from screen sharing.
+- **Your Google Calendar,** through macOS Internet Accounts. Saku never sees your Google password.
+- **Nothing to hunt for.** The grid button lists every feature and where it lives, with search in English and Bahasa Indonesia.
+- **Private and light.** No account, no analytics, about 0.02% CPU and 28 MB of memory at rest.
+
+![Six states of Saku: Home with music and today's events, the Pomodoro timer, the teleprompter, a new calendar event, the file tray and battery health](screenshot.png)
 
 ## Install
 
-You need macOS 26 and the Xcode Command Line Tools (`xcode-select --install`).
+1. Download `Saku-1.1.0.zip` from [Releases](https://github.com/GianneAngely/saku/releases/latest), unzip it and drag **Saku** into **Applications**.
+2. Open it. macOS says it can't check Saku for malware, because Saku isn't notarized (that needs a paid Apple developer account). Click **Done**, open **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to Saku. You only do this once.
+3. Hover the notch. The welcome tour shows the basics.
+
+If another notch app is running, quit it first so the two don't overlap.
+
+<details>
+<summary>Prefer Terminal, or building it yourself?</summary>
+
+Remove the download quarantine instead of using Open Anyway:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/Saku.app
+```
+
+Build from source with the Xcode Command Line Tools (`xcode-select --install`):
 
 ```bash
 git clone https://github.com/GianneAngely/saku.git
@@ -14,34 +41,35 @@ cd saku
 ./build.sh --install
 ```
 
-This builds **Saku.app** with SwiftPM and puts it in `/Applications`. Open it, follow the short welcome tour, and hover the notch. If another notch app is running, quit it first so the two don't overlap.
+</details>
 
 ## What's inside
 
-- **Live activity** — music covers and bars, timers, charging and your next meeting sit beside the camera while the notch is closed
-- **Music** — Spotify, Apple Music and browser tabs (YouTube, SoundCloud and more), with covers, a seek bar and album colours
-- **Tray and AirDrop** — drop files, links, text or images on the notch to keep them, drag them out later, or send them with AirDrop
-- **Clipboard** — searchable history with images, files and rich text, pins, and snippet collections
-- **Timers** — Pomodoro with long breaks and focus hooks, countdowns with presets, a stopwatch with laps
-- **Teleprompter** — your script scrolls under the camera at your pace or follows your voice, mirrored if you need it, hidden from screen sharing
-- **Calendar** — today's events, a month view, reminders you can tick off, and one-click Join for Meet, Zoom and Teams
-- **Notes** — several notes that save as you type
-- **Trackers** — days left until a date, habit counters and a water tracker with reminders
-- **Web** — a small browser with bookmarks and your favourite search engine
-- **Translate** — Apple's on-device translation, or DeepL and Google with your own key
-- **AI assistant** — Apple Intelligence on device, or Claude and Gemini with your own key
-- **Mirror** — a camera mirror with a ring light
-- **Apps and Shortcuts** — launch pinned apps and run your Apple Shortcuts
-- **System** — battery health, network speed, Wi-Fi signal, CPU and memory
-- **Tools** — a calculator that converts units, a colour picker, text from images, weather and 20-20-20 eye breaks
+| | Feature | What it does |
+| --- | --- | --- |
+| 🎵 | **Music** | Spotify, Apple Music and browser tabs (YouTube, SoundCloud…), with covers, a seek bar and album colours |
+| ✨ | **Live activities** | Music, timers, charging and your next meeting sit beside the camera while the notch is closed |
+| 📥 | **Tray and AirDrop** | Drop files, links, text or images on the notch, drag them out later, or AirDrop them |
+| 📋 | **Clipboard** | Searchable history with images, files and rich text, pins, and snippet collections |
+| ⏱️ | **Timers** | Pomodoro with long breaks and focus hooks, countdowns with presets, a stopwatch with laps |
+| 🎬 | **Teleprompter** | Your script under the camera, at your pace or following your voice, hidden from screen sharing |
+| 📅 | **Calendar** | Today, a month view, reminders, new events with **+**, one-click Join, and Google Calendar |
+| 📝 | **Notes** | Several notes that save as you type |
+| 💧 | **Trackers** | Days left, habit counters and a water tracker |
+| 🔋 | **System** | Battery health and cycle count, network speed, Wi-Fi, CPU and memory |
+| 🌐 | **Web, Translate, AI** | A small browser, on-device translation, and Apple Intelligence (or Claude and Gemini with your own key) |
+| 🪞 | **Mirror** | A camera mirror with a ring light |
+| 🚀 | **Apps and Shortcuts** | Launch pinned apps and run your Apple Shortcuts |
+| 🧮 | **Tools** | A calculator that converts units, a colour picker, text from images, weather and 20-20-20 eye breaks |
 
-The whole app also speaks Bahasa Indonesia (Settings > General > Language).
+The whole app speaks English and Bahasa Indonesia. Every feature and exactly where it lives: [docs/FEATURES.md](docs/FEATURES.md).
 
 ## Shortcuts
 
 | Keys | Action |
 | --- | --- |
 | `⌃⌥Space` | Open or close Saku |
+| `⌃⌥/` | All features: find anything |
 | `⌃⌥V` | Clipboard, with the cursor in the search field |
 | `⌃⌥B` | Tray |
 | `⌃⌥A` | AI assistant |
@@ -50,32 +78,94 @@ The whole app also speaks Bahasa Indonesia (Settings > General > Language).
 | `⌃⌥P` | Teleprompter: start, play or pause |
 | `⌃⌥]` `⌃⌥[` `⌃⌥;` | Teleprompter faster, slower, back 5 seconds (while reading) |
 
-Every action can get its own keys in Settings > Keyboard.
+Every action can get its own keys in Settings › Keyboard.
 
-## Permissions
+## Permissions, and why
 
-Saku asks only when you first use a feature that needs it:
+Saku never asks at launch. Each prompt appears the first time you use the feature that needs it, and you can say no.
 
-- **Automation (Spotify, Music, Chrome, Safari)** — read the current song and play, pause or skip
-- **Calendars and Reminders** — today's events, the meeting countdown and your reminder lists
-- **Camera** — the mirror
-- **Microphone and Speech Recognition** — the teleprompter's voice follow
-- **Accessibility** (optional) — paste a clipboard item straight into the app you are using
+| Permission | Asked when | Why |
+| --- | --- | --- |
+| Automation: Spotify, Music | You first play or skip from the notch | Read the song and control the player |
+| Automation: Chrome, Safari | Only if you turn on browser music | Read and control the tab that's playing |
+| Calendars | Calendar tab › Allow access | Your events, the meeting countdown, new events, Google Calendar |
+| Reminders | Calendar tab › Reminders | Your reminder lists |
+| Camera | Mirror tab › Start mirror | The mirror |
+| Microphone and Speech Recognition | Teleprompter › Voice follow | Following your voice, on device |
+| Accessibility (optional) | Clipboard › paste into the app you're using | Pressing ⌘V for you |
+
+## Privacy
+
+- No account, no analytics, no tracking. Your notes, clipboard and settings stay in `~/Library/Application Support/Saku` and the app's preferences.
+- Saku only goes online for things you can see: the weather for the city you pick ([Open-Meteo](https://open-meteo.com)), album covers (Spotify's public oEmbed and the iTunes Search API), the Web tab, and Translate or AI when you choose a cloud service with your own key. Those requests go straight to that service.
+- API keys live in the macOS Keychain.
+- Google Calendar is synced by macOS itself. Saku reads and writes it through the calendar on your Mac.
+- The teleprompter is always hidden from screen sharing and screenshots; the whole notch can be too (Settings › General).
+
+## FAQ
+
+<details>
+<summary><b>Is it really free?</b></summary>
+
+Yes. Every feature, no trial, no account.
+</details>
+
+<details>
+<summary><b>Why does macOS say it can't check Saku for malware?</b></summary>
+
+Saku is signed but not notarized by Apple, which needs a paid developer account. Use **Open Anyway** once (see Install), or build it yourself from this repository.
+</details>
+
+<details>
+<summary><b>Does it work on a Mac without a notch?</b></summary>
+
+Yes. Saku puts an invisible notch at the top centre of the screen and opens when you hover there. You can also make it visible or turn it off (Settings › General).
+</details>
+
+<details>
+<summary><b>I can't find battery health, the water tracker…</b></summary>
+
+Click the grid button in the notch (or press `⌃⌥/`) and type what you're looking for. Battery health and cycles are in the System tab; the water tracker is in Trackers. Hover any tab icon to see its name.
+</details>
+
+<details>
+<summary><b>How do I connect Google Calendar?</b></summary>
+
+Settings › Calendar › **Connect Google Calendar**. macOS opens Internet Accounts: add your Google account there and keep Calendars on. Your Google calendars show up in Saku a moment later. Reminders can go to a Google calendar too, as short events with an alert.
+</details>
+
+<details>
+<summary><b>Spotify doesn't show up.</b></summary>
+
+Play something in Spotify, then press play in the notch once: macOS asks whether Saku may control Spotify. If you said no before, turn it on in System Settings › Privacy & Security › Automation.
+</details>
+
+<details>
+<summary><b>Can I use it with another notch app?</b></summary>
+
+Two notch apps fight over the same space, so quit the other one while you use Saku.
+</details>
+
+<details>
+<summary><b>How do I uninstall it?</b></summary>
+
+Quit Saku (Settings › General › Quit, or the menu bar icon), then move it to the Bin. To remove its data too, delete `~/Library/Application Support/Saku`.
+</details>
 
 ## Develop
 
 ```bash
 swift build
-.build/debug/Saku --selftest      # 361 logic checks: silent, no windows, scratch data
+.build/debug/Saku --selftest      # 400+ logic checks: silent, no windows, scratch data
 .build/debug/Saku --livetest      # a few seconds of the real notch panel with a simulated pointer
 .build/debug/Saku --render out/   # every state as a 2x PNG, offscreen
 python3 tools/make-previews.py out/
 ```
 
-`docs/FEATURES.md` lists every feature and where the idea came from, `docs/DESIGN.md` the colours, sizes and motion, and `docs/QA.md` what was tested and how. HD pictures of every state are in `previews/`.
+[CONTRIBUTING.md](CONTRIBUTING.md) explains the layout of the code and how to send a change. `docs/` has the [features](docs/FEATURES.md), the [design](docs/DESIGN.md) and the [QA notes](docs/QA.md); HD pictures of every state are in `previews/`.
 
 ## Built with
 
 Swift · SwiftUI · AppKit · Core Animation · EventKit · Translation · Foundation Models · Vision · Speech
 
-No third-party packages and no Xcode project: it builds with SwiftPM and the Command Line Tools. Weather comes from [Open-Meteo](https://open-meteo.com) and album covers from Spotify's public oEmbed and the iTunes Search API, so nothing needs a login.
+No third-party packages and no Xcode project: it builds with SwiftPM and the Command Line Tools.
