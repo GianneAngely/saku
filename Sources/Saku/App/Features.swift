@@ -1,4 +1,5 @@
 import AppKit
+import Observation
 
 /// Creates the feature models and hooks them into the notch (live activities, drops, alerts).
 /// Each feature branch adds its line here.
@@ -22,6 +23,8 @@ enum Features {
 
     static func installTrackers(_ app: AppModel) {
         app.trackers = TrackersModel(app: app)
+        app.trackers.scheduleWaterReminder()
+        observe(app, { _ = $0.prefs.v.waterReminder }) { $0.trackers.scheduleWaterReminder() }
         SelfTest.suites.append(("trackers", TrackerChecks.run))
         Render.scenes += TrackerChecks.scenes
     }
@@ -131,6 +134,17 @@ enum Features {
         }
         SelfTest.suites.append(("music", MusicChecks.run))
         Render.scenes += MusicChecks.scenes
+    }
+
+    /// Calls `action` every time something read in `track` changes (Observation, re-armed after each change).
+    static func observe(_ app: AppModel, _ track: @escaping @MainActor (AppModel) -> Void, _ action: @escaping @MainActor (AppModel) -> Void) {
+        withObservationTracking { track(app) } onChange: { [weak app] in
+            DispatchQueue.main.async {
+                guard let app else { return }
+                action(app)
+                observe(app, track, action)
+            }
+        }
     }
 
     static func shutdown(_ app: AppModel) {

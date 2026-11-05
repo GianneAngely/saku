@@ -17,6 +17,7 @@ struct TrackersView: View {
 enum TrackerExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
         CountersColumn(app: app)
+        WaterColumn(app: app).frame(width: 150)
     }
 }
 
@@ -103,6 +104,69 @@ struct CounterRow: View {
         if counter.goal > 0 { parts.append(tr("goal %d", counter.goal)) }
         if counter.daily { parts.append(tr("resets daily")) }
         return parts.isEmpty ? tr("tap + to count") : parts.joined(separator: " · ")
+    }
+}
+
+struct WaterColumn: View {
+    let app: AppModel
+
+    var body: some View {
+        let m = app.trackers!
+        let w = m.waterToday(now: app.clock)
+        let goal = max(1, app.prefs.v.waterGoal)
+        Card(padding: 10) {
+            VStack(spacing: 6) {
+                HStack {
+                    Caption(text: tr("Water"))
+                    Spacer()
+                    if !w.drinks.isEmpty { IconButton(symbol: "arrow.uturn.backward", size: 9.5, tint: Theme.text3, hit: 20, help: tr("Undo")) { m.undoDrink() } }
+                }
+                WaterGlass(level: w.ml / goal).frame(width: 46, height: 62)
+                Text("\(m.waterText(w.ml)) / \(m.waterText(goal))").font(Theme.mono(10.5, .semibold)).foregroundStyle(Theme.text2)
+                    .lineLimit(1).minimumScaleFactor(0.8)
+                PillButton(title: "+ " + m.waterText(app.prefs.v.waterSip), primary: true, tint: Theme.sky, compact: true) { m.drink() }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+}
+
+/// A glass with a wavy water line.
+struct WaterGlass: View {
+    var level: Double
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 20, paused: Render.active)) { ctx in
+            let t = Render.active ? 0 : ctx.date.timeIntervalSinceReferenceDate
+            Canvas { c, size in
+                let glass = Path { p in
+                    p.move(to: CGPoint(x: 2, y: 0))
+                    p.addLine(to: CGPoint(x: size.width - 2, y: 0))
+                    p.addLine(to: CGPoint(x: size.width - 7, y: size.height - 4))
+                    p.addQuadCurve(to: CGPoint(x: size.width - 11, y: size.height), control: CGPoint(x: size.width - 7.5, y: size.height))
+                    p.addLine(to: CGPoint(x: 11, y: size.height))
+                    p.addQuadCurve(to: CGPoint(x: 7, y: size.height - 4), control: CGPoint(x: 7.5, y: size.height))
+                    p.closeSubpath()
+                }
+                let fill = min(1, max(0, level))
+                let top = size.height * (1 - fill * 0.92)
+                var water = Path()
+                water.move(to: CGPoint(x: 0, y: size.height))
+                for x in stride(from: 0, through: size.width, by: 2) {
+                    water.addLine(to: CGPoint(x: x, y: top + 2 * sin(x / 6 + t * 2.4)))
+                }
+                water.addLine(to: CGPoint(x: size.width, y: size.height))
+                water.closeSubpath()
+                var inner = c
+                inner.clip(to: glass)
+                inner.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color.white.opacity(0.06)))
+                if fill > 0 {
+                    inner.fill(water, with: .linearGradient(Gradient(colors: [Theme.sky, Color(hex: 0x4E9BE8)]),
+                                                            startPoint: CGPoint(x: 0, y: top), endPoint: CGPoint(x: 0, y: size.height)))
+                }
+                c.stroke(glass, with: .color(Color.white.opacity(0.35)), lineWidth: 1.5)
+            }
+        }
     }
 }
 
@@ -230,6 +294,20 @@ struct TrackersPane: View {
 enum TrackersPaneExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
         let m = app.trackers!
+        @Bindable var prefs = app.prefs
+        Section(tr("Water")) {
+            Picker(tr("Unit"), selection: $prefs.v.waterUnit) {
+                Text("ml").tag("ml")
+                Text("oz").tag("oz")
+                Text(tr("cups")).tag("cups")
+            }
+            SliderRow(title: tr("Daily goal"), value: $prefs.v.waterGoal, range: 500...5000, step: 250) { m.waterText($0) }
+            SliderRow(title: tr("Each drink"), value: $prefs.v.waterSip, range: 50...1000, step: 50) { m.waterText($0) }
+            Picker(tr("Remind me"), selection: $prefs.v.waterReminder) {
+                Text(tr("Never")).tag(0.0)
+                ForEach([30.0, 45, 60, 90, 120], id: \.self) { Text(tr("Every %d min", Int($0))).tag($0) }
+            }
+        }
         Section(tr("Counters")) {
             if m.counters.isEmpty { Text(tr("Add counters from the Trackers tab.")).foregroundStyle(.secondary) }
             ForEach(m.counters) { c in
