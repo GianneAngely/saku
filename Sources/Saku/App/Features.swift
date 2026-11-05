@@ -12,6 +12,19 @@ enum Features {
         installAirDrop(app)
         installClipboard(app)
         installNotes(app)
+        installPrompter(app)
+    }
+
+    static func installPrompter(_ app: AppModel) {
+        app.prompter = PrompterModel(app: app)
+        app.scrollHandler = { [weak app] dy in
+            guard let m = app?.prompter, m.live else { return false }
+            m.nudge(-dy)
+            return true
+        }
+        SelfTest.suites.append(("prompter", PrompterChecks.run))
+        Render.scenes += PrompterChecks.scenes
+        LiveTest.steps.append(("prompter", PrompterChecks.live))
     }
 
     static func installNotes(_ app: AppModel) {
@@ -78,6 +91,8 @@ enum Features {
 
     static func shutdown(_ app: AppModel) {
         app.notes?.saveNow()
+        app.prompter?.stopVoice()
+        app.prompter?.saveNow()
         if let clip = app.clipboard {
             if app.prefs.v.clipboardClearOnQuit { clip.clearHistory() }
             clip.saveNow()

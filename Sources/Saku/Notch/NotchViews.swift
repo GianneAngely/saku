@@ -264,6 +264,15 @@ struct OpenPanel: View {
     let app: AppModel
 
     var body: some View {
+        if app.prompter?.live == true {
+            PrompterStage(app: app)
+                .frame(width: app.openSize.width, height: app.openSize.height)
+        } else {
+            panel
+        }
+    }
+
+    private var panel: some View {
         VStack(spacing: 0) {
             TabBar(app: app)
             Group {

@@ -69,6 +69,18 @@ struct PrefsData: Codable, Equatable {
     var notesFontSize = 12.5
     var notesWordCount = true
 
+    // Teleprompter
+    var prompterSpeed = 140.0               // words per minute
+    var prompterFontSize = 26.0
+    var prompterLineSpacing = 6.0
+    var prompterWidth = 620.0
+    var prompterHeight = 190.0
+    var prompterMirror = false
+    var prompterCountdown = 3
+    var prompterFocusLine = true
+    var prompterVoice = false
+    var prompterLanguage = "auto"           // auto, en-US, id-ID
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
