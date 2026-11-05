@@ -169,3 +169,7 @@ python3 tools/make-previews.py out/
 Swift · SwiftUI · AppKit · Core Animation · EventKit · Translation · Foundation Models · Vision · Speech
 
 No third-party packages and no Xcode project: it builds with SwiftPM and the Command Line Tools.
+
+## License
+
+The code is under the [MIT License](LICENSE). The Mascot pixel art in `Resources/mascot.png` is not: it stays © Gianne Angely.
