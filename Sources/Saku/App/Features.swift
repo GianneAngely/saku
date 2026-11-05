@@ -25,6 +25,7 @@ enum Features {
         app.ai = AIModel(app: app)
         app.mirror = MirrorModel(prefs: app.prefs)
         app.launcher = LauncherModel()
+        app.shortcuts = ShortcutsModel(prefs: app.prefs)
         SelfTest.suites.append(("apps", AppsChecks.run))
         Render.scenes += AppsChecks.scenes
         // The camera never keeps running behind a closed notch.
