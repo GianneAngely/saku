@@ -156,7 +156,7 @@ struct PrefsData: Codable, Equatable {
 
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
-    var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
+    var hiddenTabs: [String] = ["camera", "apps", "tools", "translate", "web"]   // all still in All features
 }
 
 @MainActor @Observable
