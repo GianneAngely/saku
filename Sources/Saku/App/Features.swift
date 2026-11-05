@@ -32,6 +32,9 @@ enum Features {
         app.weather = WeatherModel(prefs: app.prefs, live: !app.options.qa)
         SelfTest.suites.append(("weather", WeatherChecks.run))
         SelfTest.suites.append(("ocr", OCRChecks.run))
+        app.eyeBreaks = EyeBreaks(app: app)
+        if !app.options.qa { app.eyeBreaks.start() }
+        SelfTest.suites.append(("eye breaks", EyeBreakChecks.run))
         SelfTest.suites.append(("calculator", CalculatorChecks.run))
         Render.scenes += CalculatorChecks.scenes
         SelfTest.suites.append(("apps", AppsChecks.run))
