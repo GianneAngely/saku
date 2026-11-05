@@ -3,6 +3,7 @@
 ## 1.2.1
 
 - Settings › To-do shows in the sidebar. Before, it only opened from the To-do tab.
+- The Google Tasks setup guide explains Testing and In production, and links Saku's privacy policy.
 
 ## 1.2.0
 
