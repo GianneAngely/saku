@@ -92,6 +92,12 @@ struct PrefsData: Codable, Equatable {
     var meetingLead = 10.0                  // minutes
     var calendarIDs: [String] = []          // empty = all
     var reminderListIDs: [String] = []
+    var newEventCalendarID = ""             // empty = the system's default calendar
+    var newEventAlert = 10.0                // minutes before, -1 = no alert
+    var reminderTarget = "reminders"        // reminders (Apple Reminders) or calendar (an event with an alert)
+    var reminderCalendarID = ""
+    var reminderAlert = 0.0                 // minutes before the due time
+    var googleHintDismissed = false
 
     // Battery and system
     var batteryInNotch = "plug"             // plug, always, never

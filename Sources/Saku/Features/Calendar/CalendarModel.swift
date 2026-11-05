@@ -13,21 +13,106 @@ struct CalEvent: Identifiable, Equatable {
     var location = ""
     var calendar = ""
     var joinURL: URL?
+    var calendarID = ""
 }
 
 struct CalReminder: Identifiable, Equatable {
+    enum Kind: Equatable { case reminder, event }
     var id: String
     var title: String
     var due: Date?
     var list = ""
     var color: Color = Theme.sky
     var done = false
+    /// `.event`: a reminder Saku saved as a calendar event with an alert (for Google Calendar).
+    var kind = Kind.reminder
 }
 
 struct CalList: Identifiable, Equatable {
     var id: String
     var title: String
     var color: Color
+    /// The account it belongs to, as Calendar.app names it ("iCloud", "name@gmail.com", "On My Mac").
+    var account = ""
+    var google = false
+    var writable = true
+}
+
+/// A new event from the composer.
+struct EventDraft: Equatable {
+    var title: String
+    var start: Date
+    var end: Date
+    var allDay = false
+    var calendarID = ""
+    /// Minutes before the start; nil = no alert.
+    var alert: Double?
+    var notes: String?
+}
+
+/// Google Calendar comes in through macOS Internet Accounts: Angel signs in there herself, Saku only reads and
+/// writes through EventKit. No OAuth client, no API key, no account picked for her.
+enum GoogleCalendar {
+    static let settingsURL = URL(string: "x-apple.systempreferences:com.apple.Internet-Accounts-Settings.extension")!
+
+    /// Google accounts show up in EventKit as CalDAV sources; their name is the address or "Google".
+    static func isGoogle(caldav: Bool, account: String, calendarTitles: [String]) -> Bool {
+        guard caldav else { return false }
+        let hints = ["google", "gmail.com", "googlemail.com"]
+        return ([account] + calendarTitles).contains { t in hints.contains { t.lowercased().contains($0) } }
+    }
+
+    static func openInternetAccounts() {
+        if !NSWorkspace.shared.open(settingsURL) {
+            NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/System Settings.app"))
+        }
+    }
+}
+
+/// Reminders saved as calendar events carry this line in their notes, and get a tick in the title once done.
+enum ReminderEvents {
+    static let marker = "Reminder from Saku"
+    static let donePrefix = "✓ "
+    static let length: TimeInterval = 15 * 60
+
+    static func mark(title: inout String?, done: Bool) {
+        let t = title ?? ""
+        if done {
+            if !t.hasPrefix(donePrefix) { title = donePrefix + t }
+        } else if t.hasPrefix(donePrefix) {
+            title = String(t.dropFirst(donePrefix.count))
+        }
+    }
+}
+
+/// "Lunch with Rei tomorrow 12:30" → title "Lunch with Rei", the date it names (NSDataDetector, English dates).
+enum QuickEvent {
+    struct Parsed: Equatable {
+        var title: String
+        var date: Date?
+        var duration: TimeInterval?
+        var allDay = false
+    }
+
+    static func parse(_ text: String) -> Parsed {
+        let trimmed = text.trimmingCharacters(in: .whitespaces)
+        guard let det = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue),
+              let m = det.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)),
+              let date = m.date, let r = Range(m.range, in: trimmed) else { return Parsed(title: trimmed) }
+        var title = trimmed
+        title.removeSubrange(r)
+        title = title.replacingOccurrences(of: "  ", with: " ").trimmingCharacters(in: CharacterSet.whitespaces.union(.punctuationCharacters))
+        // "Pay rent on" → "Pay rent": drop the little word that led into the date.
+        let joiners = ["on", "at", "by", "for", "from", "in", "di", "pada", "jam", "tanggal", "tgl"]
+        while let last = title.split(separator: " ").last, joiners.contains(last.lowercased()), title.contains(" ") {
+            title = String(title.dropLast(last.count)).trimmingCharacters(in: .whitespaces)
+        }
+        let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+        let named = String(trimmed[r]).lowercased()
+        let hasTime = named.contains(":") || named.contains("am") || named.contains("pm") || named.contains("noon")
+            || (comps.hour != 12 || comps.minute != 0)
+        return Parsed(title: title.isEmpty ? trimmed : title, date: date, duration: m.duration > 0 ? m.duration : nil, allDay: !hasTime)
+    }
 }
 
 enum CalAccess: Equatable { case unknown, granted, denied }
@@ -44,6 +129,14 @@ protocol CalendarSource: AnyObject {
     func events(from: Date, to: Date, calendars: [String]) -> [CalEvent]
     func reminders(lists: [String]) async -> [CalReminder]
     func setDone(_ id: String, _ done: Bool)
+    func defaultCalendarID() -> String?
+    func defaultReminderListID() -> String?
+    /// Saves a new event; returns its id, or nil when the calendar refused it.
+    func addEvent(_ draft: EventDraft) -> String?
+    func addReminder(title: String, due: Date?, listID: String?) -> Bool
+    /// Open reminders Saku saved as events in one calendar.
+    func reminderEvents(calendarID: String, from: Date, to: Date) -> [CalReminder]
+    func setEventDone(_ id: String, _ done: Bool, alert: Double?)
 }
 
 /// Finds a meeting link (Zoom, Meet, Teams, Webex, FaceTime) in an event.
@@ -83,7 +176,13 @@ final class EventKitSource: CalendarSource {
 
     func calendars() -> [CalList] {
         guard eventAccess == .granted else { return [] }
-        return store.calendars(for: .event).map { CalList(id: $0.calendarIdentifier, title: $0.title, color: Color(cgColor: $0.cgColor)) }
+        let all = store.calendars(for: .event)
+        return all.map { c in
+            let titles = all.filter { $0.source == c.source }.map(\.title)
+            return CalList(id: c.calendarIdentifier, title: c.title, color: Color(cgColor: c.cgColor), account: c.source.title,
+                           google: GoogleCalendar.isGoogle(caldav: c.source.sourceType == .calDAV, account: c.source.title, calendarTitles: titles),
+                           writable: c.allowsContentModifications)
+        }
     }
 
     func reminderLists() -> [CalList] {
@@ -100,7 +199,7 @@ final class EventKitSource: CalendarSource {
             CalEvent(id: e.calendarItemIdentifier + "@\(e.startDate.timeIntervalSince1970)", title: e.title ?? tr("Untitled"),
                      start: e.startDate, end: e.endDate, allDay: e.isAllDay, color: Color(cgColor: e.calendar.cgColor),
                      location: e.location ?? "", calendar: e.calendar.title,
-                     joinURL: MeetingLink.find(in: [e.url?.absoluteString, e.location, e.notes]))
+                     joinURL: MeetingLink.find(in: [e.url?.absoluteString, e.location, e.notes]), calendarID: e.calendar.calendarIdentifier)
         }
         .sorted { $0.start < $1.start }
     }
@@ -127,6 +226,57 @@ final class EventKitSource: CalendarSource {
         try? store.save(r, commit: true)
     }
 
+    func defaultCalendarID() -> String? { eventAccess == .granted ? store.defaultCalendarForNewEvents?.calendarIdentifier : nil }
+    func defaultReminderListID() -> String? { reminderAccess == .granted ? store.defaultCalendarForNewReminders()?.calendarIdentifier : nil }
+
+    func addEvent(_ d: EventDraft) -> String? {
+        guard eventAccess == .granted else { return nil }
+        let e = EKEvent(eventStore: store)
+        e.title = d.title
+        e.startDate = d.start
+        e.endDate = d.end
+        e.isAllDay = d.allDay
+        e.notes = d.notes
+        guard let cal = store.calendar(withIdentifier: d.calendarID) ?? store.defaultCalendarForNewEvents, cal.allowsContentModifications else { return nil }
+        e.calendar = cal
+        if let a = d.alert { e.addAlarm(EKAlarm(relativeOffset: -a * 60)) }
+        do { try store.save(e, span: .thisEvent, commit: true) } catch { return nil }
+        return e.eventIdentifier
+    }
+
+    func addReminder(title: String, due: Date?, listID: String?) -> Bool {
+        guard reminderAccess == .granted else { return false }
+        let r = EKReminder(eventStore: store)
+        r.title = title
+        guard let list = listID.flatMap({ store.calendar(withIdentifier: $0) }) ?? store.defaultCalendarForNewReminders() else { return false }
+        r.calendar = list
+        if let due {
+            r.dueDateComponents = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: due)
+            r.addAlarm(EKAlarm(absoluteDate: due))
+        }
+        return (try? store.save(r, commit: true)) != nil
+    }
+
+    func reminderEvents(calendarID: String, from: Date, to: Date) -> [CalReminder] {
+        guard eventAccess == .granted, let cal = store.calendar(withIdentifier: calendarID) else { return [] }
+        let pred = store.predicateForEvents(withStart: from, end: to, calendars: [cal])
+        return store.events(matching: pred)
+            .filter { ($0.notes ?? "").contains(ReminderEvents.marker) && !($0.title ?? "").hasPrefix(ReminderEvents.donePrefix) }
+            .map { CalReminder(id: $0.eventIdentifier, title: $0.title ?? "", due: $0.startDate, list: cal.title,
+                               color: Color(cgColor: cal.cgColor), kind: .event) }
+    }
+
+    func setEventDone(_ id: String, _ done: Bool, alert: Double?) {
+        guard let e = store.event(withIdentifier: id) else { return }
+        ReminderEvents.mark(title: &e.title, done: done)
+        if done {
+            for a in e.alarms ?? [] { e.removeAlarm(a) }
+        } else if (e.alarms ?? []).isEmpty, let alert {
+            e.addAlarm(EKAlarm(relativeOffset: -alert * 60))
+        }
+        try? store.save(e, span: .thisEvent, commit: true)
+    }
+
     func observe(_ change: @escaping @MainActor () -> Void) -> NSObjectProtocol {
         NotificationCenter.default.addObserver(forName: .EKEventStoreChanged, object: store, queue: .main) { _ in
             MainActor.assumeIsolated { change() }
@@ -135,10 +285,20 @@ final class EventKitSource: CalendarSource {
 }
 
 /// Fixed events relative to "now" for renders and self tests. Never touches EventKit.
+/// Has a made-up Google account (name@gmail.com) next to iCloud, like a Mac with Google added in Internet Accounts.
 @MainActor
 final class DemoCalendarSource: CalendarSource {
+    struct Saved {
+        var event: CalEvent
+        var notes: String?
+        var alert: Double?
+    }
+
     var now: Date
     var reminderItems: [CalReminder]
+    private(set) var saved: [Saved] = []
+    /// False shows a Mac without a Google account.
+    var hasGoogle = true
 
     init(now: Date) {
         self.now = now
@@ -155,11 +315,19 @@ final class DemoCalendarSource: CalendarSource {
     func requestReminders() async -> Bool { true }
 
     func calendars() -> [CalList] {
-        [CalList(id: "work", title: "Work", color: Theme.sky), CalList(id: "home", title: "Personal", color: Theme.blossom)]
+        var list = [CalList(id: "work", title: "Work", color: Theme.sky, account: "iCloud"),
+                    CalList(id: "home", title: "Personal", color: Theme.blossom, account: "iCloud")]
+        if hasGoogle {
+            list += [CalList(id: "google", title: "name@gmail.com", color: Theme.mint, account: "name@gmail.com", google: true),
+                     CalList(id: "google-holidays", title: "Holidays in Indonesia", color: Theme.butter, account: "name@gmail.com",
+                             google: true, writable: false)]
+        }
+        return list
     }
 
     func reminderLists() -> [CalList] {
-        [CalList(id: "games", title: "Games", color: Theme.blossom), CalList(id: "personal", title: "Personal", color: Theme.mint)]
+        [CalList(id: "games", title: "Games", color: Theme.blossom, account: "iCloud"),
+         CalList(id: "personal", title: "Personal", color: Theme.mint, account: "iCloud")]
     }
 
     func events(from: Date, to: Date, calendars: [String]) -> [CalEvent] {
@@ -168,17 +336,19 @@ final class DemoCalendarSource: CalendarSource {
         func at(_ dayOffset: Int, _ h: Int, _ m: Int) -> Date {
             cal.date(byAdding: .minute, value: dayOffset * 1440 + h * 60 + m, to: day)!
         }
-        let all = [
-            CalEvent(id: "e0", title: "Morning standup", start: at(0, 9, 0), end: at(0, 9, 15), color: Theme.sky, calendar: "Work"),
+        let fixed = [
+            CalEvent(id: "e0", title: "Morning standup", start: at(0, 9, 0), end: at(0, 9, 15), color: Theme.sky, calendar: "Work", calendarID: "work"),
             CalEvent(id: "e1", title: "Design review: Saku", start: now.addingTimeInterval(8 * 60), end: now.addingTimeInterval(53 * 60),
-                     color: Theme.sky, location: "Google Meet", calendar: "Work", joinURL: URL(string: "https://meet.google.com/abc-defg-hij")),
-            CalEvent(id: "e2", title: "Gym with Rei", start: at(0, 18, 30), end: at(0, 19, 30), color: Theme.blossom, location: "Kuta", calendar: "Personal"),
-            CalEvent(id: "e3", title: "SIM Jam results", start: at(6, 10, 0), end: at(6, 11, 0), color: Theme.blossom, calendar: "Personal"),
+                     color: Theme.sky, location: "Google Meet", calendar: "Work", joinURL: URL(string: "https://meet.google.com/abc-defg-hij"), calendarID: "work"),
+            CalEvent(id: "e2", title: "Gym with Rei", start: at(0, 18, 30), end: at(0, 19, 30), color: Theme.blossom, location: "Kuta", calendar: "Personal", calendarID: "home"),
+            CalEvent(id: "e3", title: "SIM Jam results", start: at(6, 10, 0), end: at(6, 11, 0), color: Theme.blossom, calendar: "Personal", calendarID: "home"),
             CalEvent(id: "e4", title: "Thesis meeting", start: at(2, 13, 0), end: at(2, 14, 0), color: Theme.sky, calendar: "Work",
-                     joinURL: URL(string: "https://us02web.zoom.us/j/123456789")),
-            CalEvent(id: "e5", title: "Holiday", start: at(3, 0, 0), end: at(4, 0, 0), allDay: true, color: Theme.mint, calendar: "Personal"),
+                     joinURL: URL(string: "https://us02web.zoom.us/j/123456789"), calendarID: "work"),
+            CalEvent(id: "e5", title: "Holiday", start: at(3, 0, 0), end: at(4, 0, 0), allDay: true, color: Theme.mint, calendar: "Personal", calendarID: "home"),
         ]
-        return all.filter { $0.end > from && $0.start < to && (calendars.isEmpty || calendars.contains($0.calendar.lowercased() == "work" ? "work" : "home")) }
+        let known = Set(self.calendars().map(\.id))
+        return (fixed + saved.map(\.event))
+            .filter { $0.end > from && $0.start < to && known.contains($0.calendarID) && (calendars.isEmpty || calendars.contains($0.calendarID)) }
             .sorted { $0.start < $1.start }
     }
 
@@ -186,6 +356,44 @@ final class DemoCalendarSource: CalendarSource {
 
     func setDone(_ id: String, _ done: Bool) {
         if let i = reminderItems.firstIndex(where: { $0.id == id }) { reminderItems[i].done = done }
+    }
+
+    func defaultCalendarID() -> String? { "home" }
+    func defaultReminderListID() -> String? { "personal" }
+
+    func addEvent(_ d: EventDraft) -> String? {
+        guard let c = calendars().first(where: { $0.id == (d.calendarID.isEmpty ? "home" : d.calendarID) }), c.writable else { return nil }
+        let id = "saved-\(saved.count + 1)"
+        saved.append(Saved(event: CalEvent(id: id, title: d.title, start: d.start, end: d.end, allDay: d.allDay, color: c.color,
+                                           calendar: c.title, calendarID: c.id), notes: d.notes, alert: d.alert))
+        return id
+    }
+
+    func addReminder(title: String, due: Date?, listID: String?) -> Bool {
+        let list = reminderLists().first { $0.id == (listID ?? "personal") } ?? reminderLists()[1]
+        reminderItems.append(CalReminder(id: "r\(reminderItems.count + 1)", title: title, due: due, list: list.title, color: list.color))
+        return true
+    }
+
+    func reminderEvents(calendarID: String, from: Date, to: Date) -> [CalReminder] {
+        saved.filter { $0.event.calendarID == calendarID && ($0.notes ?? "").contains(ReminderEvents.marker)
+                       && !$0.event.title.hasPrefix(ReminderEvents.donePrefix) && $0.event.start < to && $0.event.end > from }
+            .map { CalReminder(id: $0.event.id, title: $0.event.title, due: $0.event.start, list: $0.event.calendar, color: $0.event.color, kind: .event) }
+    }
+
+    func setEventDone(_ id: String, _ done: Bool, alert: Double?) {
+        guard let i = saved.firstIndex(where: { $0.event.id == id }) else { return }
+        var t: String? = saved[i].event.title
+        ReminderEvents.mark(title: &t, done: done)
+        saved[i].event.title = t ?? ""
+        saved[i].alert = done ? nil : (saved[i].alert ?? alert)
+    }
+
+    func savedItem(_ id: String) -> Saved? { saved.first { $0.event.id == id } }
+
+    func clearSaved() {
+        saved = []
+        hasGoogle = true
     }
 }
 
@@ -201,6 +409,17 @@ final class CalendarModel {
     private(set) var reminders: [CalReminder] = []
     private(set) var eventAccess = CalAccess.unknown
     private(set) var reminderAccess = CalAccess.unknown
+    private(set) var calendarList: [CalList] = []
+
+    /// The composer in the Calendar tab: a new event or a new reminder.
+    enum Compose: Equatable { case event, reminder }
+    var composing: Compose?
+    var draftTitle = ""
+    var draftMinutes = 9 * 60.0              // time of day; the day is `selectedDay`
+    var draftLength = 60.0                   // event minutes, 0 = all day
+    var draftTimed = true                    // reminders: false = no time, just the day
+    var draftCalendarID = ""
+    var draftAlert = 10.0                    // minutes before, -1 = none
 
     @ObservationIgnored let source: CalendarSource
     @ObservationIgnored private let app: AppModel
@@ -218,6 +437,7 @@ final class CalendarModel {
     func reload() {
         eventAccess = source.eventAccess
         reminderAccess = source.reminderAccess
+        calendarList = source.calendars()
         let cal = Calendar.current
         let ids = app.prefs.v.calendarIDs
         let today = cal.startOfDay(for: now)
@@ -225,9 +445,122 @@ final class CalendarModel {
         upcoming = source.events(from: now.addingTimeInterval(-3600), to: cal.date(byAdding: .day, value: 2, to: today)!, calendars: ids)
         loadDay()
         loadMonth()
+        // Reminders saved as events update right away; Apple Reminders arrive a moment later.
+        reminders = Self.merge(reminderAccess == .granted ? reminders.filter { $0.kind == .reminder } : [], reminderEventItems())
         if reminderAccess == .granted {
-            Task { @MainActor in self.reminders = await self.source.reminders(lists: self.app.prefs.v.reminderListIDs) }
+            Task { @MainActor in
+                let rs = await self.source.reminders(lists: self.app.prefs.v.reminderListIDs)
+                self.reminders = Self.merge(rs, self.reminderEventItems())
+            }
         }
+    }
+
+    static func merge(_ a: [CalReminder], _ b: [CalReminder]) -> [CalReminder] {
+        (a + b).sorted { ($0.due ?? .distantFuture) < ($1.due ?? .distantFuture) }
+    }
+
+    // MARK: Google Calendar and writing
+
+    /// Accounts with calendars, in Calendar.app's names, Google ones first.
+    var accounts: [String] {
+        var seen: [String] = []
+        for c in calendarList.sorted(by: { $0.google && !$1.google }) where !seen.contains(c.account) { seen.append(c.account) }
+        return seen
+    }
+
+    var googleAccounts: [String] { accounts.filter { a in calendarList.contains { $0.account == a && $0.google } } }
+    var writableCalendars: [CalList] { calendarList.filter(\.writable) }
+
+    /// Reminders go to a calendar as events (so they reach Google Calendar) when that's picked and the calendar exists.
+    var remindersAsEvents: Bool {
+        app.prefs.v.reminderTarget == "calendar" && calendarList.contains { $0.id == app.prefs.v.reminderCalendarID && $0.writable }
+    }
+
+    var remindersAvailable: Bool { reminderAccess == .granted || (remindersAsEvents && eventAccess == .granted) }
+
+    private func reminderEventItems() -> [CalReminder] {
+        guard remindersAsEvents else { return [] }
+        let cal = Calendar.current
+        let from = cal.date(byAdding: .day, value: -14, to: cal.startOfDay(for: now))!
+        let to = cal.date(byAdding: .day, value: 90, to: now)!
+        return source.reminderEvents(calendarID: app.prefs.v.reminderCalendarID, from: from, to: to)
+    }
+
+    func calendar(_ id: String) -> CalList? { calendarList.first { $0.id == id } }
+
+    /// Where a new event goes: the composer's pick, the saved default, or the system default.
+    var targetCalendarID: String {
+        for id in [draftCalendarID, app.prefs.v.newEventCalendarID, source.defaultCalendarID() ?? ""] where calendar(id)?.writable == true { return id }
+        return writableCalendars.first?.id ?? ""
+    }
+
+    func startCompose(_ kind: Compose) {
+        draftTitle = ""
+        draftCalendarID = ""
+        draftAlert = kind == .event ? app.prefs.v.newEventAlert : app.prefs.v.reminderAlert
+        draftLength = 60
+        draftTimed = true
+        let mins = Calendar.current.dateComponents([.hour, .minute], from: now)
+        let next = Double((mins.hour ?? 9) * 60 + (mins.minute ?? 0))
+        draftMinutes = min(23 * 60 + 45, (next / 30).rounded(.up) * 30 + (kind == .event ? 30 : 0))
+        if kind == .reminder { draftMinutes = max(draftMinutes, 9 * 60) }
+        withAnimation(Theme.fade) { composing = kind }
+    }
+
+    func cancelCompose() { withAnimation(Theme.fade) { composing = nil } }
+
+    /// Start of the draft: the picked day plus the time, or what the title names ("lunch tomorrow 12:30").
+    func draftStart(parsed: QuickEvent.Parsed? = nil) -> (start: Date, allDay: Bool) {
+        if let p = parsed, let d = p.date { return (p.allDay ? Calendar.current.startOfDay(for: d) : d, p.allDay) }
+        let day = Calendar.current.startOfDay(for: selectedDay)
+        let untimed = composing == .reminder ? !draftTimed : draftLength == 0
+        return (untimed ? day : day.addingTimeInterval(draftMinutes * 60), untimed)
+    }
+
+    /// Saves the composer's event or reminder. Returns false when nothing could be saved.
+    @discardableResult
+    func saveCompose() -> Bool {
+        guard let kind = composing else { return false }
+        let parsed = QuickEvent.parse(draftTitle)
+        let title = parsed.title.trimmingCharacters(in: .whitespaces)
+        guard !title.isEmpty else { return false }
+        let when = draftStart(parsed: parsed.date == nil ? nil : parsed)
+        var ok = false
+        switch kind {
+        case .event:
+            let length = parsed.duration ?? (when.allDay ? 86400 : max(15, draftLength) * 60)
+            let draft = EventDraft(title: title, start: when.start, end: when.start.addingTimeInterval(when.allDay ? 86400 : length),
+                                   allDay: when.allDay, calendarID: targetCalendarID, alert: draftAlert < 0 ? nil : draftAlert)
+            ok = source.addEvent(draft) != nil
+            if ok { app.flash("calendar.badge.plus", tr("Added to %@", calendar(draft.calendarID)?.title ?? tr("Calendar"))) }
+        case .reminder:
+            var due: Date? = parsed.date != nil || draftTimed ? when.start : nil
+            if parsed.date != nil && parsed.allDay { due = when.start.addingTimeInterval(9 * 3600) }
+            ok = addReminder(title: title, due: due)
+        }
+        if ok {
+            withAnimation(Theme.fade) { composing = nil }
+            reload()
+        } else {
+            app.flash("exclamationmark.triangle.fill", tr("Couldn't save. Check calendar access."), tint: Theme.coral)
+        }
+        return ok
+    }
+
+    /// A reminder: an Apple Reminder, or an event with an alert in the calendar Angel picked (that's how it reaches Google).
+    func addReminder(title: String, due: Date?) -> Bool {
+        if remindersAsEvents {
+            let start = due ?? Calendar.current.startOfDay(for: selectedDay).addingTimeInterval(9 * 3600)
+            let draft = EventDraft(title: title, start: start, end: start.addingTimeInterval(ReminderEvents.length),
+                                   calendarID: app.prefs.v.reminderCalendarID, alert: max(0, draftAlert), notes: ReminderEvents.marker)
+            let ok = source.addEvent(draft) != nil
+            if ok { app.flash("bell.badge.fill", tr("Reminder added to %@", calendar(draft.calendarID)?.title ?? tr("Calendar"))) }
+            return ok
+        }
+        let list = app.prefs.v.reminderListIDs.first ?? source.defaultReminderListID()
+        let ok = source.addReminder(title: title, due: due, listID: list)
+        if ok { app.flash("checklist", tr("Added to Reminders")) }
+        return ok
     }
 
     func loadDay() {
@@ -274,7 +607,11 @@ final class CalendarModel {
     }
 
     func toggle(_ r: CalReminder) {
-        source.setDone(r.id, !r.done)
+        if r.kind == .event {
+            source.setEventDone(r.id, !r.done, alert: max(0, app.prefs.v.reminderAlert))
+        } else {
+            source.setDone(r.id, !r.done)
+        }
         withAnimation(Theme.fade) { reminders.removeAll { $0.id == r.id } }
     }
 
