@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Settings › To-do shows in the sidebar. Before, it only opened from the To-do tab.
+
 ## 1.2.0
 
 - **To-do tab:** lists, subtasks and due dates (type "Pay rent Friday"), with tasks due today beside the camera. Works on its own as a list on your Mac.

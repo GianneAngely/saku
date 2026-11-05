@@ -105,6 +105,20 @@ enum SelfTest {
         check(Double(l15.left.count) * TabBar.iconWidth <= side && Double(l15.right.count) * TabBar.iconWidth + TabBar.toolsWidth <= side, "icons never overflow")
         check(TabBar.layout(tabs: all, panelWidth: 820, notchWidth: 185).more.count < l15.more.count, "a wider panel shows more tabs")
 
+        // Settings: every pane with a view is in the sidebar once, and the sidebar never shows a placeholder.
+        func shown(_ v: Any) -> Any {  // follows a ViewBuilder switch down to the view it picked
+            let m = Mirror(reflecting: v)
+            guard "\(m.subjectType)".hasPrefix("_ConditionalContent"), let storage = m.children.first?.value,
+                  let picked = Mirror(reflecting: storage).children.first?.value else { return v }
+            return shown(picked)
+        }
+        let settings = SettingsView(app: app, nav: SettingsNav())
+        let withView = SettingsPane.allCases.filter { "\(type(of: shown(settings.pane($0))))".hasSuffix("Pane") }
+        let sidebar = SettingsPane.available
+        check(withView.allSatisfy(sidebar.contains), "every settings pane with a view is in the sidebar",
+              withView.filter { !sidebar.contains($0) }.map(\.rawValue).joined(separator: ", "))
+        check(sidebar.allSatisfy(withView.contains) && Set(sidebar).count == sidebar.count, "sidebar panes are real and listed once")
+
         // JSON store round trip.
         struct Sample: Codable, Equatable { var a: Int; var d: Date }
         let store = JSONStore<Sample>("selftest-sample.json")

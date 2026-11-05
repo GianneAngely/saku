@@ -79,7 +79,7 @@ enum SettingsPane: String, CaseIterable, Identifiable {
     }
 
     /// Panes whose feature has landed. Feature branches add themselves here.
-    static let available: [SettingsPane] = [.welcome, .general, .appearance, .tabs, .music, .tray, .clipboard, .timers, .notes, .prompter, .calendar, .trackers, .web, .translate, .ai, .camera, .apps, .tools, .system, .keyboard, .about]
+    static let available: [SettingsPane] = [.welcome, .general, .appearance, .tabs, .music, .tray, .clipboard, .timers, .notes, .todo, .prompter, .calendar, .trackers, .web, .translate, .ai, .camera, .apps, .tools, .system, .keyboard, .about]
 }
 
 @MainActor @Observable
@@ -143,7 +143,7 @@ struct SettingsView: View {
         }
     }
 
-    @ViewBuilder private func pane(_ p: SettingsPane) -> some View {
+    @ViewBuilder func pane(_ p: SettingsPane) -> some View {
         switch p {
         case .welcome: WelcomePane(app: app)
         case .general: GeneralPane(app: app)
