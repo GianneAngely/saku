@@ -180,7 +180,11 @@ final class PrompterModel {
         selected = scripts.first?.id
     }
 
-    static let sample = Script(title: tr("Welcome script"), text: tr("""
+    static var sample: Script {
+        Lang.shared.isIndonesian ? Script(title: "Naskah sambutan", text: welcomeID) : Script(title: "Welcome script", text: welcomeEN)
+    }
+
+    static let welcomeEN = """
     Hi! This is Saku's teleprompter. Your words scroll right under the camera, so your eyes stay on the lens and people feel like you are looking at them.
 
     Press play and read at your own pace. Use plus and minus to change the speed, or scroll with the trackpad to jump around.
@@ -188,7 +192,17 @@ final class PrompterModel {
     Turn on Voice follow and the script moves with you as you speak. Pause, and it waits for you.
 
     Nobody in a call can see this script. It is hidden from screen sharing and screenshots.
-    """))
+    """
+
+    static let welcomeID = """
+    Hai! Ini teleprompter Saku. Kata-katamu bergulir tepat di bawah kamera, jadi matamu tetap ke lensa dan orang merasa kamu sedang menatap mereka.
+
+    Tekan putar dan baca sesuai tempomu. Pakai plus dan minus untuk mengubah kecepatan, atau gulir dengan trackpad untuk lompat.
+
+    Nyalakan Ikuti suara dan naskah bergerak mengikuti ucapanmu. Berhenti sebentar, dan naskah ikut menunggu.
+
+    Tidak ada orang di panggilan yang bisa melihat naskah ini. Naskah tersembunyi dari berbagi layar dan tangkapan layar.
+    """
 
     var current: Script? { scripts.first { $0.id == selected } }
 

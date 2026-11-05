@@ -151,7 +151,16 @@ struct EventRow: View {
             }
             Spacer(minLength: 4)
             if let _ = event.joinURL, !event.allDay, event.end > now {
-                PillButton(title: tr("Join"), icon: "video.fill", primary: event.start.timeIntervalSince(now) < 15 * 60, compact: true) { m.join(event) }
+                if compact {
+                    Button { m.join(event) } label: {
+                        Image(systemName: "video.fill").font(.system(size: 10, weight: .bold)).foregroundStyle(Color.black.opacity(0.85))
+                            .frame(width: 30, height: 22).background(Capsule().fill(Theme.blossom)).contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .help(tr("Join"))
+                } else {
+                    PillButton(title: tr("Join"), icon: "video.fill", primary: event.start.timeIntervalSince(now) < 15 * 60, compact: true) { m.join(event) }
+                }
             }
         }
         .padding(.vertical, 4).padding(.trailing, 4)
