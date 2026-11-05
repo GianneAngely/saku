@@ -189,7 +189,7 @@ struct MusicPane: View {
                 }
             }
             Section {
-                ForEach(m.players.filter { $0.kind != .mock }, id: \.kind) { p in
+                ForEach(m.players.filter { $0.kind == .spotify || $0.kind == .music }, id: \.kind) { p in
                     HStack {
                         Circle().fill(p.kind.tint).frame(width: 8, height: 8)
                         Text(p.kind.title)
@@ -207,12 +207,8 @@ struct MusicPane: View {
             } footer: {
                 Text(tr("Saku reads Spotify and Music through macOS Automation. macOS asks once per app. Covers come from Spotify and the iTunes Store, no login needed."))
             }
+            BrowserMusicSection(app: app)
         }
         .formStyle(.grouped)
     }
-}
-
-/// Placeholder until the browser-music feature lands.
-enum BrowserMusic {
-    static var isAvailable: Bool { false }
 }

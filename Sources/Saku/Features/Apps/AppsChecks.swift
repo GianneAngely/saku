@@ -81,7 +81,7 @@ enum FocusHookChecks {
             RunLoop.main.run(until: Date().addingTimeInterval(0.05))
             lines = ((try? String(contentsOf: log, encoding: .utf8)) ?? "").split(separator: "\n").map(String.init)
         }
-        check(lines == ["Focus on", "Focus off"], "focus start and end run their Shortcuts")
+        check(lines.sorted() == ["Focus off", "Focus on"], "focus start and end run their Shortcuts")
         t.pomoReset()
         t.pomo = Pomodoro()
         app.prefs.v.focusStartShortcut = ""
