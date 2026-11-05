@@ -1,0 +1,51 @@
+name: Bug report
+description: Something in Saku doesn't work as it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what Saku did instead. Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the Timers tab
+        2. Start a countdown
+        3. ...
+  - type: input
+    id: version
+    attributes:
+      label: Saku version
+      description: Settings › About
+      placeholder: "1.1.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac model
+      placeholder: "macOS 26.1, MacBook Pro 14-inch (M3)"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part?
+      options:
+        - The notch itself (hover, opening, closing)
+        - Music
+        - Tray or AirDrop
+        - Clipboard
+        - Timers
+        - Calendar or Google Calendar
+        - Teleprompter
+        - Trackers
+        - System (battery, network, CPU)
+        - Web, Translate or AI
+        - Settings
+        - Something else

@@ -1,0 +1,22 @@
+name: Feature request
+description: An idea that would make Saku better.
+labels: [idea]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the moment you wished Saku could help, rather than the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could Saku do it?
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you send it
+      options:
+        - label: I searched the existing issues and checked docs/FEATURES.md (the feature might already be there).
+          required: true
