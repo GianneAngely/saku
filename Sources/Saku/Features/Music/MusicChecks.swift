@@ -74,7 +74,7 @@ enum MusicChecks {
     }
 
     static let scenes: [Render.Scene] = [
-        Render.Scene(name: "closed-music", settle: 0.5) { _ in },
+        Render.Scene(name: "closed-music", settle: 0.5) { $0.prefs.v.musicLiveActivity = true },
         Render.Scene(name: "open-home-music", settle: 0.5) { $0.notch.mode = .open; $0.notch.tab = .home },
         Render.Scene(name: "open-home-music-cover", settle: 0.5) {
             $0.notch.mode = .open

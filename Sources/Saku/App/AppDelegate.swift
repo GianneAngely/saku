@@ -50,6 +50,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             LiveTest.run(app: app, controller: notch)
             return
         }
+        if let seconds = options.soak {
+            Soak.run(app: app, controller: notch, seconds: seconds)
+            return
+        }
         applyChrome()
         observeChrome()
         DistributedNotificationCenter.default().addObserver(forName: .init("local.saku.app.show"), object: nil, queue: .main) { [weak self] _ in

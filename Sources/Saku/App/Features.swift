@@ -129,7 +129,7 @@ enum Features {
     static func installClipboard(_ app: AppModel) {
         // QA never reads or writes the real clipboard: it gets a private pasteboard and no polling.
         let pb = app.options.qa ? NSPasteboard(name: .init("local.saku.qa.\(getpid())")) : .general
-        app.clipboard = ClipboardModel(prefs: app.prefs, pasteboard: pb, watch: !app.options.qa)
+        app.clipboard = ClipboardModel(prefs: app.prefs, pasteboard: pb, watch: !app.options.qa || app.options.soak != nil)
         SelfTest.suites.append(("clipboard", ClipboardChecks.run))
         Render.scenes += ClipboardChecks.scenes
     }
