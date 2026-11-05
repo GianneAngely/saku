@@ -10,6 +10,7 @@ struct TabContent: View {
         case .home: HomeView(app: app)
         case .timers: TimersView(app: app)
         case .tray: TrayView(app: app)
+        case .clipboard: ClipboardView(app: app)
         default: EmptyState(icon: tab.icon, title: tab.title, subtitle: tr("Turn this tab on in Settings"))
         }
     }

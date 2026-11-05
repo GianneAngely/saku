@@ -48,7 +48,7 @@ enum Tab: String, CaseIterable, Identifiable, Codable {
     }
 
     /// Tabs whose feature has landed. Feature branches add themselves here.
-    static let available: [Tab] = [.home, .tray, .timers]
+    static let available: [Tab] = [.home, .tray, .clipboard, .timers]
 }
 
 enum NotchMode: Equatable {
@@ -157,6 +157,8 @@ final class NotchState {
     var alert: NotchAlert?
     var hud: NotchHUD?
     var dropTarget: DropZone?
+    /// Set by a keyboard shortcut so the opened tab puts the cursor in its search field.
+    var focusSearch = false
     var reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
 
     var isOpen: Bool { mode != .closed }

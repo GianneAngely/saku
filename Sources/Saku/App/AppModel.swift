@@ -46,6 +46,7 @@ final class AppModel {
     var music: MusicModel!
     var timers: TimersModel!
     var tray: TrayModel!
+    var clipboard: ClipboardModel!
 
     @ObservationIgnored private var hudClear: DispatchWorkItem?
     @ObservationIgnored private var alertClear: DispatchWorkItem?
