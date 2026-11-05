@@ -27,7 +27,9 @@ enum SelfTest {
     static func run(app: AppModel) -> Bool {
         for (name, body) in suites {
             section(name)
+            let before = passed
             body(app)
+            if ProcessInfo.processInfo.environment["SAKU_SUITES"] != nil { print("  \(name): \(passed - before) passed") }
         }
         print("selftest: \(passed) passed, \(failed.count) failed")
         for f in failed { print("  FAIL \(f)") }
