@@ -8,6 +8,7 @@ struct TabContent: View {
     var body: some View {
         switch tab {
         case .home: HomeView(app: app)
+        case .timers: TimersView(app: app)
         default: EmptyState(icon: tab.icon, title: tab.title, subtitle: tr("Turn this tab on in Settings"))
         }
     }

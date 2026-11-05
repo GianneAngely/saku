@@ -5,7 +5,21 @@ import AppKit
 @MainActor
 enum Features {
     static func install(_ app: AppModel) {
+        Sound.muted = app.options.mute
         installMusic(app)
+        installTimers(app)
+    }
+
+    static func installTimers(_ app: AppModel) {
+        app.timers = TimersModel(app: app)
+        app.addLive(priority: 100) { [weak app] in
+            app?.timers.liveDisplay().map { .timer($0) }
+        }
+        NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak app] _ in
+            MainActor.assumeIsolated { app?.timers.check() }
+        }
+        SelfTest.suites.append(("timers", TimerChecks.run))
+        Render.scenes += TimerChecks.scenes
     }
 
     static func installMusic(_ app: AppModel) {

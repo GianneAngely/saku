@@ -44,6 +44,7 @@ final class AppModel {
 
     // Feature models (created in Features.install).
     var music: MusicModel!
+    var timers: TimersModel!
 
     @ObservationIgnored private var hudClear: DispatchWorkItem?
     @ObservationIgnored private var alertClear: DispatchWorkItem?
@@ -98,7 +99,7 @@ final class AppModel {
     var visibleTabs: [Tab] {
         let hidden = Set(prefs.v.hiddenTabs)
         let ordered = prefs.v.tabOrder.compactMap(Tab.init(rawValue:)) + Tab.allCases.filter { !prefs.v.tabOrder.contains($0.rawValue) }
-        let shown = ordered.filter { Tab.available.contains($0) && !hidden.contains($0.rawValue) }
+        let shown = ordered.filter { Tab.available.contains($0) && ($0 == .home || !hidden.contains($0.rawValue)) }
         return shown.isEmpty ? [.home] : shown
     }
 
