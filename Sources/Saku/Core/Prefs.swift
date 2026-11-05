@@ -119,6 +119,12 @@ struct PrefsData: Codable, Equatable {
     var claudeEffort = "low"
     var geminiModel = "gemini-flash-latest"
 
+    // Mirror
+    var mirrorAutoStart = true
+    var mirrorFlip = true
+    var mirrorRingLight = false
+    var mirrorEffect = "natural"
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]

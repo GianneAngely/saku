@@ -19,6 +19,7 @@ struct TabContent: View {
         case .web: WebTab(app: app)
         case .translate: TranslateView(app: app)
         case .ai: AIView(app: app)
+        case .camera: MirrorView(app: app)
         default: EmptyState(icon: tab.icon, title: tab.title, subtitle: tr("Turn this tab on in Settings"))
         }
     }

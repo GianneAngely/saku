@@ -57,6 +57,7 @@ final class AppModel {
     var bookmarks: BookmarksModel!
     var translate: TranslateModel!
     var ai: AIModel!
+    var mirror: MirrorModel!
 
     /// Trackpad scrolling over the open notch (the teleprompter uses it).
     @ObservationIgnored var scrollHandler: ((CGFloat) -> Bool)?
