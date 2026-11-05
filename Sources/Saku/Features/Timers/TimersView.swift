@@ -5,7 +5,7 @@ struct TimersView: View {
 
     var body: some View {
         let t = app.timers!
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(spacing: 8) {
             if TimerMode.available.count > 1 {
                 Segments(items: TimerMode.available.map { ($0, $0.title) },
                          selection: Binding(get: { t.mode }, set: { t.mode = $0 }), tint: t.mode.tint)
@@ -15,7 +15,7 @@ struct TimersView: View {
             default: TimerModeExtras.view(t.mode, app: app)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }
 
@@ -31,6 +31,22 @@ enum TimerModeExtras {
     }
 }
 
+/// The ring sits in the middle of the panel, right under the camera, with equal columns on both sides.
+struct TimerColumns<Leading: View, Center: View, Trailing: View>: View {
+    @ViewBuilder var leading: Leading
+    @ViewBuilder var center: Center
+    @ViewBuilder var trailing: Trailing
+
+    var body: some View {
+        HStack(spacing: 14) {
+            leading.frame(maxWidth: .infinity)
+            center
+            trailing.frame(maxWidth: .infinity)
+        }
+        .frame(maxHeight: .infinity)
+    }
+}
+
 struct PomodoroView: View {
     let app: AppModel
 
@@ -41,38 +57,41 @@ struct PomodoroView: View {
         TimelineView(.animation(minimumInterval: 1, paused: !pomo.running)) { ctx in
             let left = pomo.left(at: ctx.date, prefs.v)
             let total = pomo.length(prefs.v)
-            HStack(spacing: 18) {
+            TimerColumns {
+                VStack(spacing: 7) {
+                    Text(pomo.phase == .focus ? tr("Focus %d of %d", pomo.round, max(1, prefs.v.pomoLongEvery)) : pomo.title)
+                        .font(Theme.font(16, .bold)).foregroundStyle(Theme.text).lineLimit(1)
+                    Text(nextHint).font(Theme.font(11.5)).foregroundStyle(Theme.text2)
+                        .lineLimit(2).multilineTextAlignment(.center)
+                    RoundDots(done: pomo.phase == .focus ? pomo.round - 1 : pomo.round, total: max(1, prefs.v.pomoLongEvery), tint: Theme.butter)
+                        .padding(.top, 2)
+                    TodayChip(count: pomo.today(TimersModel.dayKey(ctx.date)))
+                        .padding(.top, 3)
+                }
+            } center: {
                 ZStack {
                     TimerRing(progress: total > 0 ? 1 - left / total : 0, tint: pomo.tint, line: 8)
                     VStack(spacing: 1) {
-                        Text(TimerDisplay.clock(left, roundUp: true)).font(Theme.mono(28, .heavy)).foregroundStyle(Theme.text)
-                        Text(pomo.title).font(Theme.font(11, .semibold)).foregroundStyle(pomo.tint)
+                        Text(TimerDisplay.clock(left, roundUp: true)).font(Theme.mono(29, .heavy)).foregroundStyle(Theme.text)
+                        Text(pomo.title).font(Theme.font(11, .semibold)).foregroundStyle(pomo.tint).lineLimit(1)
                     }
+                    .padding(.horizontal, 14)
                 }
-                .frame(width: 128, height: 128)
-                .padding(.leading, 4)
-
-                VStack(alignment: .leading, spacing: 9) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(pomo.phase == .focus ? tr("Focus %d of %d", pomo.round, max(1, prefs.v.pomoLongEvery)) : pomo.title)
-                            .font(Theme.font(15, .bold)).foregroundStyle(Theme.text)
-                        Spacer()
-                        Label(tr("%d today", pomo.today(TimersModel.dayKey(ctx.date))), systemImage: "flame.fill")
-                            .font(Theme.font(11, .semibold)).foregroundStyle(Theme.butter)
-                    }
-                    Text(nextHint).font(Theme.font(11.5)).foregroundStyle(Theme.text2).lineLimit(1)
+                .frame(width: 132, height: 132)
+            } trailing: {
+                VStack(spacing: 8) {
+                    PillButton(title: pomo.running ? tr("Pause") : (pomo.started ? tr("Resume") : tr("Start")),
+                               icon: pomo.running ? "pause.fill" : "play.fill", primary: true, tint: pomo.tint, minWidth: 150) { t.pomoToggle() }
                     HStack(spacing: 6) {
-                        PillButton(title: pomo.running ? tr("Pause") : (pomo.started ? tr("Resume") : tr("Start")),
-                                   icon: pomo.running ? "pause.fill" : "play.fill", primary: true, tint: pomo.tint) { t.pomoToggle() }
-                        PillButton(title: tr("Reset"), icon: "arrow.counterclockwise") { t.pomoReset() }
-                        PillButton(title: tr("Skip"), icon: "forward.end.fill") { t.pomoSkip() }
+                        PillButton(title: tr("Reset"), icon: "arrow.counterclockwise", compact: true) { t.pomoReset() }
+                        PillButton(title: tr("Skip"), icon: "forward.end.fill", compact: true) { t.pomoSkip() }
                     }
-                    HStack(spacing: 6) {
+                    StepperGroup {
                         MinuteStepper(title: tr("Focus"), value: Binding(get: { prefs.v.pomoFocus }, set: { prefs.v.pomoFocus = $0 }), range: 1...180)
                         MinuteStepper(title: tr("Break"), value: Binding(get: { prefs.v.pomoShort }, set: { prefs.v.pomoShort = $0 }), range: 1...60)
                         MinuteStepper(title: tr("Long"), value: Binding(get: { prefs.v.pomoLong }, set: { prefs.v.pomoLong = $0 }), range: 1...120)
                     }
-                    RoundDots(done: pomo.phase == .focus ? pomo.round - 1 : pomo.round, total: max(1, prefs.v.pomoLongEvery), tint: Theme.butter)
+                    .padding(.top, 2)
                 }
             }
         }
@@ -90,7 +109,33 @@ struct PomodoroView: View {
     }
 }
 
-/// "Focus 25m" with small minus and plus buttons.
+/// Finished focus sessions today, as a small flame chip.
+struct TodayChip: View {
+    var count: Int
+
+    var body: some View {
+        Label(tr("%d today", count), systemImage: "flame.fill")
+            .font(Theme.font(11, .semibold))
+            .foregroundStyle(count > 0 ? Theme.butter : Theme.text3)
+            .padding(.horizontal, 10)
+            .frame(height: 22)
+            .background(Capsule().fill((count > 0 ? Theme.butter : Color.white).opacity(count > 0 ? 0.13 : 0.06)))
+    }
+}
+
+/// Steppers side by side when they fit, else stacked as compact rows.
+struct StepperGroup<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 5) { content }
+            VStack(spacing: 4) { content }
+        }
+    }
+}
+
+/// "Focus 25m" with small minus and plus buttons. An empty title shows the value alone.
 struct MinuteStepper: View {
     var title: String
     @Binding var value: Double
@@ -103,9 +148,11 @@ struct MinuteStepper: View {
             stepButton("minus") { value = max(range.lowerBound, value - step) }
             VStack(spacing: -1) {
                 Text("\(Int(value))\(unit)").font(Theme.mono(11.5, .bold)).foregroundStyle(Theme.text)
-                Text(title).font(Theme.font(9, .semibold)).foregroundStyle(Theme.text3).lineLimit(1).minimumScaleFactor(0.75)
+                if !title.isEmpty {
+                    Text(title).font(Theme.font(9, .semibold)).foregroundStyle(Theme.text3).lineLimit(1).minimumScaleFactor(0.75)
+                }
             }
-            .frame(minWidth: 38)
+            .frame(minWidth: 34)
             .layoutPriority(1)
             stepButton("plus") { value = min(range.upperBound, value + step) }
         }
@@ -117,7 +164,7 @@ struct MinuteStepper: View {
     private func stepButton(_ symbol: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol).font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.text2)
-                .frame(width: 20, height: 26).contentShape(Rectangle())
+                .frame(width: 18, height: 26).contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

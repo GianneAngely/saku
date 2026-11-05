@@ -48,6 +48,7 @@ struct PillButton: View {
     var primary = false
     var tint: Color = Theme.blossom
     var compact = false
+    var minWidth: CGFloat? = nil
     var action: () -> Void
     @State private var hovering = false
 
@@ -59,6 +60,7 @@ struct PillButton: View {
             }
             .foregroundStyle(primary ? Color.black.opacity(0.85) : (hovering ? Theme.text : Theme.text2))
             .padding(.horizontal, compact ? 9 : 12)
+            .frame(minWidth: minWidth)
             .frame(height: compact ? 22 : 26)
             .background(Capsule().fill(primary ? tint.opacity(hovering ? 1 : 0.92) : Color.white.opacity(hovering ? 0.12 : 0.07)))
             .contentShape(Capsule())
@@ -166,6 +168,73 @@ struct Segments<T: Hashable>: View {
         }
         .padding(2)
         .background(Capsule().fill(Color.white.opacity(0.07)))
+    }
+}
+
+/// Vertical list that fades out at the bottom edge, so a row cut by the card edge reads as "more below".
+struct FadingList<Content: View>: View {
+    var spacing: CGFloat = 4
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: spacing) { content }
+                .padding(.bottom, 10)
+        }
+        .mask {
+            VStack(spacing: 0) {
+                Color.black
+                LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom).frame(height: 14)
+            }
+        }
+    }
+}
+
+/// Wraps items into rows and centres every row, so a short last row doesn't hug the left edge.
+struct CenteredFlow: Layout {
+    var spacing: CGFloat = 8
+    var rowSpacing: CGFloat = 8
+
+    private struct Row {
+        var items: [Int] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+    }
+
+    private func rows(width: CGFloat, _ subviews: Subviews) -> [Row] {
+        var out: [Row] = []
+        var row = Row()
+        for i in subviews.indices {
+            let s = subviews[i].sizeThatFits(.unspecified)
+            if !row.items.isEmpty && row.width + spacing + s.width > width {
+                out.append(row)
+                row = Row()
+            }
+            row.width += (row.items.isEmpty ? 0 : spacing) + s.width
+            row.height = max(row.height, s.height)
+            row.items.append(i)
+        }
+        if !row.items.isEmpty { out.append(row) }
+        return out
+    }
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let r = rows(width: proposal.width ?? .infinity, subviews)
+        let height = r.reduce(0) { $0 + $1.height } + rowSpacing * CGFloat(max(0, r.count - 1))
+        return CGSize(width: proposal.width ?? (r.map(\.width).max() ?? 0), height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var y = bounds.minY
+        for row in rows(width: bounds.width, subviews) {
+            var x = bounds.minX + (bounds.width - row.width) / 2
+            for i in row.items {
+                let s = subviews[i].sizeThatFits(.unspecified)
+                subviews[i].place(at: CGPoint(x: x, y: y + (row.height - s.height) / 2), proposal: ProposedViewSize(s))
+                x += s.width + spacing
+            }
+            y += row.height + rowSpacing
+        }
     }
 }
 
