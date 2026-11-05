@@ -164,6 +164,9 @@ struct BatteryCard: View {
                     VStack(alignment: .leading, spacing: 0) {
                         Text("\(b.level)%").font(Theme.mono(24, .heavy)).foregroundStyle(Theme.text)
                         Text(b.status).font(Theme.font(11, .medium)).foregroundStyle(Theme.text2).lineLimit(1)
+                        if b.lowPower {
+                            Label(tr("Low Power Mode"), systemImage: "leaf.fill").font(Theme.font(10, .semibold)).foregroundStyle(Theme.butter)
+                        }
                     }
                 }
                 ProgressTrack(value: Double(b.level) / 100, tint: b.tint, height: 5)
@@ -172,7 +175,6 @@ struct BatteryCard: View {
                     if let h = b.health { Stat(label: tr("Health"), value: "\(h)%") }
                     if let c = b.cycles { Stat(label: tr("Cycles"), value: "\(c)") }
                     if let t = b.temperature { Stat(label: tr("Temp"), value: String(format: "%.0f°C", t)) }
-                    Stat(label: tr("Low Power"), value: b.lowPower ? tr("On") : tr("Off"))
                 }
             }
         }
@@ -196,16 +198,19 @@ struct SystemView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            BatteryCard(app: app).frame(width: 220)
+            BatteryCard(app: app).frame(width: 200)
             SystemExtras.view(app: app)
         }
+        .onAppear { if !Render.active { app.monitor?.setVisible(true) } }
+        .onDisappear { if !Render.active { app.monitor?.setVisible(false) } }
     }
 }
 
 @MainActor
 enum SystemExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        Spacer(minLength: 0)
+        NetworkCard(app: app)
+        CPUMemoryCard(app: app).frame(width: 190)
     }
 }
 

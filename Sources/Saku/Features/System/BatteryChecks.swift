@@ -48,6 +48,7 @@ enum BatteryChecks {
             app.battery.apply(BatteryInfo(present: true, level: 64, charging: true, onAC: true, minutesToFull: 72, health: 88, cycles: 113))
         },
         Render.Scene(name: "open-system", settle: 0.5) { app in
+            app.monitor.fillDemo()
             app.battery.apply(BatteryInfo(present: true, level: 76, onAC: false, minutesToEmpty: 312, health: 88, cycles: 113, temperature: 31.5))
             app.notch.mode = .open
             app.notch.tab = .system

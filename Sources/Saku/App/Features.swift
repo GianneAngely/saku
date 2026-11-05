@@ -15,6 +15,8 @@ enum Features {
         installPrompter(app)
         installCalendar(app)
         installBattery(app)
+        app.monitor = SystemMonitor()
+        SelfTest.suites.append(("system", SystemChecks.run))
     }
 
     static func installBattery(_ app: AppModel) {
