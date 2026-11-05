@@ -51,6 +51,24 @@ enum Render {
                 print("FAILED to render \(scene.name)")
             }
         }
+        // Settings panes as standalone images (the real window uses the same views).
+        if only == nil || only!.contains(where: { "settings".hasPrefix($0) || $0.hasPrefix("settings") }) {
+            reset(app)
+            let panes: [(String, AnyView)] = [
+                ("settings-welcome", AnyView(WelcomePane(app: app))),
+                ("settings-appearance", AnyView(AppearancePane(app: app))),
+                ("settings-keyboard", AnyView(KeyboardPane(app: app))),
+                ("settings-music", AnyView(MusicPane(app: app))),
+            ]
+            for (name, v) in panes {
+                let size = CGSize(width: 620, height: 640)
+                if let rep = snapshot(v.frame(width: size.width, height: size.height).background(Color(nsColor: .windowBackgroundColor))
+                    .environment(\.colorScheme, .dark), size: size, settle: 0.6) {
+                    save(rep, to: dir.appendingPathComponent("\(name).png"))
+                    count += 1
+                }
+            }
+        }
         print("rendered \(count) scenes to \(dir.path)")
         QA.cleanUp()
     }
