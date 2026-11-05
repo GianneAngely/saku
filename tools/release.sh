@@ -7,7 +7,7 @@ version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" Resourc
 ./build.sh
 swift build -c release --triple x86_64-apple-macosx26.0
 lipo -create .build/arm64-apple-macosx/release/Saku .build/x86_64-apple-macosx/release/Saku -output build/Saku.app/Contents/MacOS/Saku
-codesign --force --sign - build/Saku.app
+codesign --force --sign - --requirements '=designated => identifier "local.saku.app"' build/Saku.app
 mkdir -p dist
 rm -f "dist/Saku-$version.zip"
 ditto -c -k --sequesterRsrc --keepParent build/Saku.app "dist/Saku-$version.zip"
