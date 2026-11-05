@@ -32,6 +32,18 @@ enum CalculatorChecks {
         check(m.commit() == "42" && m.history.first?.result == "42", "enter keeps history")
         m.input = "oops +"
         check(m.commit() == nil && m.history.count == 1, "failed lines are not kept")
+
+        // Colour formats and recent colours.
+        check(ColorPickerModel.text("#FF7EB6", .rgb) == "rgb(255, 126, 182)", "rgb format")
+        check(ColorPickerModel.text("#FF7EB6", .hsl) == "hsl(334, 100%, 75%)", "hsl format")
+        check(ColorPickerModel.text("#000000", .hsl) == "hsl(0, 0%, 0%)", "hsl of black")
+        check(ColorPickerModel.text("#FF7EB6", .swiftui) == "Color(red: 1.000, green: 0.494, blue: 0.714)", "SwiftUI format")
+        let cp = app.colors!
+        for h in cp.recent { cp.remove(h) }
+        cp.add("#111111"); cp.add("#222222"); cp.add("#111111")
+        check(cp.recent == ["#111111", "#222222"], "recent colours, newest first, no duplicates")
+        for i in 0..<30 { cp.add(String(format: "#%06X", i)) }
+        check(cp.recent.count == 18, "recent colours are capped")
     }
 
     static let scenes: [Render.Scene] = [
@@ -40,6 +52,9 @@ enum CalculatorChecks {
             m.clearHistory()
             for s in ["5 km to mi", "12% of 80", "2560 * 1440", "30 c to f"] { m.input = s; _ = m.commit() }
             m.input = "3h 20min in min"
+            let cp = app.colors!
+            for h in cp.recent { cp.remove(h) }
+            for h in ["#C7A6FF", "#8CC8FF", "#7EE0B5", "#FFD66B", "#E36A9A", "#FF7EB6", "#2B1B3A", "#F6F1F4"] { cp.add(h) }
             app.notch.mode = .open
             app.notch.tab = .tools
         },

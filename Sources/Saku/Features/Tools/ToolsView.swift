@@ -49,7 +49,7 @@ struct ToolsView: View {
 @MainActor
 enum ToolsExtras {
     @ViewBuilder static func view(app: AppModel) -> some View {
-        EmptyView()
+        ColorCard(app: app)
     }
 }
 
