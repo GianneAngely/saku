@@ -112,6 +112,13 @@ struct PrefsData: Codable, Equatable {
     var translateTo = "id"
     var translatePrompt = "Translate this into {{to}}:\n\n{{text}}"
 
+    // AI assistant
+    var aiProvider = "apple"                // apple, claude, gemini
+    var aiSystemPrompt = "You are Saku, a friendly assistant that lives in the Mac's notch. Keep answers short and clear. Use plain text, with short lists when they help."
+    var claudeModel = "claude-opus-5-5"
+    var claudeEffort = "low"
+    var geminiModel = "gemini-flash-latest"
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
