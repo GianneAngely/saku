@@ -55,6 +55,16 @@ struct PrefsData: Codable, Equatable {
     var trayOpenAfterDrop = false
     var airdropZone = true
 
+    // Clipboard
+    var clipboardEnabled = true
+    var clipboardLimit = 200
+    var clipboardPreview = true
+    var clipboardClearOnQuit = false
+    var clipboardPasteDirect = false
+    var clipboardPaused = false
+    var clipboardIgnoreApps: [String] = ["com.1password.1password", "com.agilebits.onepassword7", "com.apple.keychainaccess",
+                                         "com.bitwarden.desktop", "com.apple.Passwords"]
+
     // Tabs
     var tabOrder: [String] = Tab.allCases.map(\.rawValue)
     var hiddenTabs: [String] = ["camera", "apps", "system", "tools", "translate", "trackers", "web"]
