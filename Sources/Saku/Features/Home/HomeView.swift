@@ -11,6 +11,7 @@ struct TabContent: View {
         case .timers: TimersView(app: app)
         case .tray: TrayView(app: app)
         case .clipboard: ClipboardView(app: app)
+        case .notes: NotesView(app: app)
         default: EmptyState(icon: tab.icon, title: tab.title, subtitle: tr("Turn this tab on in Settings"))
         }
     }
