@@ -1,21 +1,69 @@
-# 🌸 Saku
+![Saku opening from the MacBook notch: music, timers, the teleprompter, calendar, the to-do list and the All features page](previews/saku-tour.gif)
 
-Saku turns the MacBook notch into **a little pocket of tools**. Hover the camera and it blooms open with your music, timers, files, clipboard, calendar, a to-do list, an AI assistant and a teleprompter that scrolls right under the lens. It's native, free, and needs no account.
+<div align="center">
+  <img src=".github/readme/icon.png" width="112" height="112" alt="">
+  <h1>Saku</h1>
+  <p><b>A free pocket of tools in your MacBook's notch.</b><br>
+  Hover the camera and Saku opens with your music, files, clipboard, timers, calendar, to-dos and a teleprompter that scrolls right under the lens.</p>
+  <p><a href="https://github.com/GianneAngely/saku/releases/latest"><img src=".github/readme/download.png" width="300" alt="Download Saku for macOS"></a></p>
+  <p>Free and open source · macOS 26 or later · Apple silicon and Intel<br>
+  <a href="https://gianneangely.github.io/saku-site/">Website</a> · <a href="https://gianneangely.github.io/saku-site/privacy.html">Privacy policy</a> · <a href="CHANGELOG.md">What's new</a></p>
+</div>
 
-![Saku opening from the notch: music, timers, the teleprompter, calendar, the to-do list and the All features page](previews/saku-tour.gif)
+## What's inside
 
-**[Download Saku](https://github.com/GianneAngely/saku/releases/latest)** for macOS 26 or later, on Apple silicon and Intel Macs. Every feature is free. Website and privacy policy: [gianneangely.github.io/saku-site](https://gianneangely.github.io/saku-site/).
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src=".github/readme/music.png" alt="The music card in the notch: album cover, song, progress bar and playback buttons.">
+      <b>Music</b><br>
+      Spotify, Apple Music and browser tabs like YouTube, with covers, a seek bar and controls.
+    </td>
+    <td width="50%" valign="top">
+      <img src=".github/readme/files.png" alt="The tray in the notch holding five files, links and notes, with AirDrop all and folder buttons.">
+      <b>Files and AirDrop</b><br>
+      Drop files, links or text on the notch, drag them out later, or AirDrop them all at once.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src=".github/readme/clipboard.png" alt="Clipboard history in the notch: a search field, recent items and a preview with a Copy button.">
+      <b>Clipboard</b><br>
+      Searchable history with images and files, pins and snippets. Passwords from password managers are never kept.
+    </td>
+    <td width="50%" valign="top">
+      <img src=".github/readme/timers.png" alt="A Pomodoro timer in the notch: focus 2 of 4, 23:13 left, with pause, reset and length controls.">
+      <b>Timers</b><br>
+      Pomodoro with breaks, countdowns and a stopwatch, ticking beside the camera while the notch is closed.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src=".github/readme/calendar.png" alt="The calendar in the notch: a month view and today's events with a Join button.">
+      <b>Calendar</b><br>
+      Today, a month view and reminders, new events in plain words, one-click Join, and your Google Calendar.
+    </td>
+    <td width="50%" valign="top">
+      <img src=".github/readme/todo.png" alt="The To-do tab in the notch: task lists, tasks with due dates and a note that it synced with Google.">
+      <b>To-do and Google Tasks</b><br>
+      Lists, subtasks and due dates that sync both ways with Google Tasks, so tasks from your phone show up here.
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src=".github/readme/teleprompter.png" alt="The teleprompter right under the camera, with speed and voice-follow controls.">
+      <b>Teleprompter</b><br>
+      Your script right under the camera. It can follow your voice and stays hidden from screen sharing.
+    </td>
+    <td width="50%" valign="top">
+      <img src=".github/readme/all-features.png" alt="The All features page: a search field and a grid of features, each with where it lives.">
+      <b>And everything else</b><br>
+      Notes, trackers, battery health, weather, translate, AI, a mirror, apps and Shortcuts. The grid button finds any of them.
+    </td>
+  </tr>
+</table>
 
-## Why Saku
-
-- **Everything is free.** Music control, timers and the rest aren't behind a paid upgrade.
-- **A teleprompter under the camera.** Read your script while looking at the lens; it can follow your voice and is hidden from screen sharing.
-- **Your Google Calendar,** through macOS Internet Accounts. Saku never sees your Google password.
-- **Your Google Tasks.** A to-do list with subtasks and due dates that syncs both ways with Google Tasks, so tasks from your phone show up in the notch.
-- **Nothing to hunt for.** The grid button lists every feature and where it lives, with search in English and Bahasa Indonesia.
-- **Private and light.** No account, no analytics, about 0.02% CPU and 28 MB of memory at rest.
-
-![Six states of Saku: Home with music and today's events, the Pomodoro timer, the teleprompter, the to-do list synced with Google Tasks, the file tray and battery health](screenshot.png)
+Native and light: about 0.02% CPU and 28 MB of memory at rest. The whole app speaks English and Bahasa Indonesia. Every feature and exactly where it lives: [docs/FEATURES.md](docs/FEATURES.md).
 
 ## Install
 
@@ -23,10 +71,10 @@ Saku turns the MacBook notch into **a little pocket of tools**. Hover the camera
 2. Open it. macOS says it can't check Saku for malware, because Saku isn't notarized (that needs a paid Apple developer account). Click **Done**, open **System Settings › Privacy & Security**, scroll down and click **Open Anyway** next to Saku. You only do this once.
 3. Hover the notch. The welcome tour shows the basics.
 
-If another notch app is running, quit it first so the two don't overlap.
+Saku needs macOS 26 or later, on Apple silicon or Intel. It's made for MacBooks with a notch; on other Macs it adds an invisible notch at the top of the screen. If another notch app is running, quit it first so the two don't overlap.
 
 <details>
-<summary>Prefer Terminal, or building it yourself?</summary>
+<summary>Prefer Terminal?</summary>
 
 Remove the download quarantine instead of using Open Anyway:
 
@@ -34,39 +82,25 @@ Remove the download quarantine instead of using Open Anyway:
 xattr -dr com.apple.quarantine /Applications/Saku.app
 ```
 
-Build from source with the Xcode Command Line Tools (`xcode-select --install`):
-
-```bash
-git clone https://github.com/GianneAngely/saku.git
-cd saku
-./build.sh --install
-```
-
 </details>
 
-## What's inside
+## Google Tasks
 
-| | Feature | What it does |
-| --- | --- | --- |
-| 🎵 | **Music** | Spotify, Apple Music and browser tabs (YouTube, SoundCloud…), with covers, a seek bar and album colours |
-| ✨ | **Live activities** | Music, timers, charging and your next meeting sit beside the camera while the notch is closed |
-| 📥 | **Tray and AirDrop** | Drop files, links, text or images on the notch, drag them out later, or AirDrop them |
-| 📋 | **Clipboard** | Searchable history with images, files and rich text, pins, and snippet collections |
-| ⏱️ | **Timers** | Pomodoro with long breaks and focus hooks, countdowns with presets, a stopwatch with laps |
-| 🎬 | **Teleprompter** | Your script under the camera, at your pace or following your voice, hidden from screen sharing |
-| 📅 | **Calendar** | Today, a month view, reminders, new events with **+**, one-click Join, and Google Calendar |
-| 📝 | **Notes** | Several notes that save as you type |
-| ✅ | **To-do** | Lists, subtasks and due dates; syncs both ways with Google Tasks using your own Google client ([setup guide](docs/google-tasks-setup.en.md)) |
-| 💧 | **Trackers** | Days left, habit counters and a water tracker |
-| 🔋 | **System** | Battery health and cycle count, network speed, Wi-Fi, CPU and memory |
-| 🌐 | **Web, Translate, AI** | A small browser, on-device translation, and Apple Intelligence (or Claude and Gemini with your own key) |
-| 🪞 | **Mirror** | A camera mirror with a ring light |
-| 🚀 | **Apps and Shortcuts** | Launch pinned apps and run your Apple Shortcuts |
-| 🧮 | **Tools** | A calculator that converts units, a colour picker, text from images, weather and 20-20-20 eye breaks |
+The To-do tab works on its own as a list on your Mac. To sync it both ways with Google Tasks and the Tasks app on your phone, make a free Google Cloud client once and import it in Settings › To-do. The [step-by-step guide](docs/google-tasks-setup.en.md) walks you through it, also in [Bahasa Indonesia](docs/google-tasks-setup.md).
 
-The whole app speaks English and Bahasa Indonesia. Every feature and exactly where it lives: [docs/FEATURES.md](docs/FEATURES.md).
+## Privacy
 
-## Shortcuts
+- No account, no analytics, no tracking. Your notes, clipboard and settings stay on your Mac in `~/Library/Application Support/Saku`.
+- Saku only goes online for things you ask for: the weather for the city you pick ([Open-Meteo](https://open-meteo.com)), album covers (Spotify's public oEmbed and the iTunes Search API), the Web tab, Google Tasks, and Translate or AI when you choose a cloud service with your own key. Those requests go straight to that service.
+- API keys and the Google sign-in live in the macOS Keychain. Google Calendar is synced by macOS itself.
+- The teleprompter is always hidden from screen sharing and screenshots; the whole notch can be too (Settings › General).
+
+The full [privacy policy](https://gianneangely.github.io/saku-site/privacy.html) covers every detail, including how Saku uses Google Tasks data.
+
+## Shortcuts and permissions
+
+<details>
+<summary>Keyboard shortcuts</summary>
 
 | Keys | Action |
 | --- | --- |
@@ -82,7 +116,10 @@ The whole app speaks English and Bahasa Indonesia. Every feature and exactly whe
 
 Every action can get its own keys in Settings › Keyboard.
 
-## Permissions, and why
+</details>
+
+<details>
+<summary>Permissions, and why</summary>
 
 Saku never asks at launch. Each prompt appears the first time you use the feature that needs it, and you can say no.
 
@@ -96,16 +133,7 @@ Saku never asks at launch. Each prompt appears the first time you use the featur
 | Microphone and Speech Recognition | Teleprompter › Voice follow | Following your voice, on device |
 | Accessibility (optional) | Clipboard › paste into the app you're using | Pressing ⌘V for you |
 
-## Privacy
-
-- No account, no analytics, no tracking. Your notes, clipboard and settings stay in `~/Library/Application Support/Saku` and the app's preferences.
-- Saku only goes online for things you can see: the weather for the city you pick ([Open-Meteo](https://open-meteo.com)), album covers (Spotify's public oEmbed and the iTunes Search API), the Web tab, and Translate or AI when you choose a cloud service with your own key. Those requests go straight to that service.
-- API keys live in the macOS Keychain.
-- Google Calendar is synced by macOS itself. Saku reads and writes it through the calendar on your Mac.
-- Google Tasks sync uses your own Google OAuth client and asks only for your tasks. Its token stays in the Keychain.
-- The teleprompter is always hidden from screen sharing and screenshots; the whole notch can be too (Settings › General).
-
-The full [privacy policy](https://gianneangely.github.io/saku-site/privacy.html) covers every detail, including how Saku uses Google Tasks data.
+</details>
 
 ## FAQ
 
@@ -169,7 +197,17 @@ Two notch apps fight over the same space, so quit the other one while you use Sa
 Quit Saku from its menu bar icon (the little blossom), then move it to the Trash. To remove its data too, delete `~/Library/Application Support/Saku`.
 </details>
 
-## Develop
+## Build from source
+
+With the Xcode Command Line Tools (`xcode-select --install`):
+
+```bash
+git clone https://github.com/GianneAngely/saku.git
+cd saku
+./build.sh --install
+```
+
+For development:
 
 ```bash
 swift build
@@ -177,6 +215,7 @@ swift build
 .build/debug/Saku --livetest      # a few seconds of the real notch panel with a simulated pointer
 .build/debug/Saku --render out/   # every state as a 2x PNG, offscreen
 python3 tools/make-previews.py out/
+python3 tools/make-readme-art.py  # the README pictures, from previews/
 ```
 
 [CONTRIBUTING.md](CONTRIBUTING.md) explains the layout of the code and how to send a change. `docs/` has the [features](docs/FEATURES.md), the [design](docs/DESIGN.md) and the [QA notes](docs/QA.md); HD pictures of every state are in `previews/`.
