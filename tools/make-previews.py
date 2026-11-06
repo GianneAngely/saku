@@ -51,9 +51,10 @@ bg.save(os.path.join(root, "screenshot.png"))
 
 # 3. Tour GIF: each state for 1.6 s with a short cross-fade, one shared palette (ffmpeg), 1200 px wide.
 import shutil, subprocess, tempfile
-order = ["closed-plain", "closed-music", "open-home-full", "open-timers-pomodoro", "closed-pomodoro", "prompter-reading",
+# Starts on the open notch, so the first frame (and the README hero) shows Saku at work; the closed notch ends the loop.
+order = ["open-home-full", "open-timers-pomodoro", "closed-pomodoro", "prompter-reading",
          "open-calendar-new-event", "closed-meeting", "open-todo", "open-finder", "open-system", "open-trackers", "open-tray", "drop-targets",
-         "open-clipboard", "open-ai", "open-tools", "alert-countdown"]
+         "open-clipboard", "open-ai", "open-tools", "alert-countdown", "closed-plain", "closed-music"]
 shots = [crop(n, 400, 290).resize((1200, 435), Image.LANCZOS) for n in order if os.path.exists(os.path.join(src, n + ".png"))]
 fps, hold, fade = 10, 16, 3
 tmp = tempfile.mkdtemp()
