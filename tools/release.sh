@@ -13,3 +13,4 @@ rm -f "dist/Saku-$version.zip"
 ditto -c -k --sequesterRsrc --keepParent build/Saku.app "dist/Saku-$version.zip"
 lipo -archs build/Saku.app/Contents/MacOS/Saku
 shasum -a 256 "dist/Saku-$version.zip"
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -u "$PWD/build/Saku.app" 2>/dev/null || true

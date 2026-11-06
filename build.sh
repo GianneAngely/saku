@@ -16,9 +16,13 @@ done
 cp docs/FEATURES.md docs/google-tasks-setup.md docs/google-tasks-setup.en.md "$app/Contents/Resources/"
 # Ad hoc, but with a designated requirement that survives rebuilds, so macOS keeps the permissions it gave Saku.
 codesign --force --sign - --requirements '=designated => identifier "local.saku.app"' "$app"
+# Keep Launch Services on the installed app: a newer copy here would win Open at Login, Spotlight and `open`.
+lsregister=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
+$lsregister -u "$PWD/$app" 2>/dev/null || true
 echo "built $PWD/$app"
 if [[ "${1:-}" == "--install" ]]; then
   rm -rf /Applications/Saku.app
   cp -R "$app" /Applications/
+  $lsregister -f /Applications/Saku.app 2>/dev/null || true
   echo "installed /Applications/Saku.app"
 fi
