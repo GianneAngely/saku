@@ -1,4 +1,5 @@
 import AppKit
+import Security
 import SwiftUI
 
 /// `Saku --selftest`: logic checks that run inside the real binary (no window, no sound, scratch data folder).
@@ -126,16 +127,49 @@ enum SelfTest {
         store.save(sample)
         check(store.load() == sample, "json store round trip")
         try? FileManager.default.removeItem(at: store.url)
+
+        // Keychain: the old per-key items move into one item. A throwaway service with prompts off, removed afterwards.
+        let wasInMemory = Secrets.inMemory
+        SecKeychainSetUserInteractionAllowed(false)
+        Secrets.service = "local.saku.app.selftest-\(getpid())"
+        Secrets.inMemory = false
+        func item(_ account: String) -> [String: Any] {
+            [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: Secrets.service, kSecAttrAccount as String: account]
+        }
+        func exists(_ account: String) -> Bool { SecItemCopyMatching(item(account) as CFDictionary, nil) == errSecSuccess }
+        for (account, value) in [("deepl", "k1"), ("google-tasks-refresh", "r1")] {
+            var add = item(account)
+            add[kSecValueData as String] = Data(value.utf8)
+            SecItemAdd(add as CFDictionary, nil)
+        }
+        check(Secrets.get("deepl") == "k1" && Secrets.get("google-tasks-refresh") == "r1", "old keychain items carry over")
+        check(exists("secrets") && !exists("deepl") && !exists("google-tasks-refresh"), "they move into one keychain item")
+        Secrets.set("deepl", "")
+        Secrets.inMemory = false   // drops the cache, like a restart
+        check(Secrets.get("deepl").isEmpty && Secrets.get("google-tasks-refresh") == "r1", "the one item keeps its values")
+        for account in ["secrets", "deepl", "google-tasks-refresh"] { SecItemDelete(item(account) as CFDictionary) }
+        Secrets.service = "local.saku.app"
+        Secrets.inMemory = wasInMemory
+        SecKeychainSetUserInteractionAllowed(true)
     }
 }
 
 enum QA {
     static let suiteName = "local.saku.app.qa"
 
-    /// Removes the QA defaults domain and scratch data so test runs leave nothing behind.
+    /// Removes the QA defaults domain and scratch data so test runs leave nothing behind. Running a copy of the app
+    /// registers it with Launch Services, and the newest copy wins Open at Login, Spotlight and `open`, so a copy
+    /// outside /Applications (a test build) unregisters itself and the installed app stays the one that opens.
     static func cleanUp() {
         UserDefaults.standard.removePersistentDomain(forName: suiteName)
         let tmp = FileManager.default.temporaryDirectory.path
         if Paths.dataDir.path.hasPrefix(tmp) { try? FileManager.default.removeItem(at: Paths.dataDir) }
+        let app = Bundle.main.bundleURL
+        if app.pathExtension == "app", !app.path.hasPrefix("/Applications/") {
+            let ls = Process()
+            ls.executableURL = URL(fileURLWithPath: "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister")
+            ls.arguments = ["-u", app.path]
+            if (try? ls.run()) != nil { ls.waitUntilExit() }
+        }
     }
 }

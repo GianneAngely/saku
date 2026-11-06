@@ -122,6 +122,12 @@ Saku is signed but not notarized by Apple, which needs a paid developer account.
 </details>
 
 <details>
+<summary><b>Why does macOS ask for my password after an update?</b></summary>
+
+Saku keeps your API keys and your Google sign-in in one item in the macOS Keychain. Saku is signed ad hoc rather than with a paid Apple developer certificate, so macOS treats each new version as a different app and asks once before it can read that item. Type your Mac's login password and click **Always Allow**; it won't ask again until the next update.
+</details>
+
+<details>
 <summary><b>Does it work on a Mac without a notch?</b></summary>
 
 Yes. Saku puts an invisible notch at the top centre of the screen and opens when you hover there. You can also make it visible or turn it off (Settings › General).

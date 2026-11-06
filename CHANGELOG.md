@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.3
+
+- API keys and the Google sign-in share one keychain item, so after an update macOS asks for keychain access once at most instead of once per key.
+- Test copies of Saku unregister themselves from Launch Services, so Open at Login and Spotlight keep starting the installed app.
+
 ## 1.2.2
 
 - The Google Tasks setup guide is in English too, and Settings › To-do opens it in Saku's language.
