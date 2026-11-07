@@ -102,6 +102,7 @@ struct PrefsData: Codable, Equatable {
 
     // To-do
     var todoInNotch = true                  // tasks due today show beside the camera
+    var todoInNotchOnHover = true           // ...only while the pointer is on the notch (or it's open)
     var todoShowCompleted = false
 
     // Battery and system

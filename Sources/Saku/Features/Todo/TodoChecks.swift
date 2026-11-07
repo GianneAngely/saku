@@ -40,10 +40,20 @@ enum TodoChecks {
         m.setDue(rent!.id, day.addingTimeInterval(-86400))
         check(m.dueToday.count == 2, "due today counts today and late tasks")
         app.prefs.v.todoInNotch = true
+        app.prefs.v.todoInNotchOnHover = false
         check(m.liveActivity() == .todo(count: 2), "tasks due today show beside the camera")
         app.prefs.v.todoInNotch = false
         check(m.liveActivity() == nil, "and can be turned off")
         app.prefs.v.todoInNotch = true
+        app.prefs.v.todoInNotchOnHover = true
+        app.notch.hovering = false
+        check(PrefsData().todoInNotchOnHover && m.liveActivity() == nil, "by default the closed notch stays plain")
+        app.notch.hovering = true
+        let hovered = m.liveActivity()
+        app.notch.hovering = false
+        app.notch.mode = .open
+        check(hovered == .todo(count: 2) && m.liveActivity() == .todo(count: 2), "the tasks show on hover and while the panel is open")
+        app.notch.mode = .closed
         m.delete(trip.id)
         check(m.item(trip.id) == nil && m.item(sub.id) == nil, "deleting a task removes its subtasks")
         let list = m.addList("Uni")
@@ -228,6 +238,11 @@ enum TodoChecks {
             app.notch.tab = .todo
         },
         Render.Scene(name: "closed-todo", settle: 0.4) { app in
+            app.todo.loadDemo(google: false)
+            app.prefs.v.todoInNotch = true
+            app.notch.hovering = true
+        },
+        Render.Scene(name: "closed-todo-idle", settle: 0.4) { app in
             app.todo.loadDemo(google: false)
             app.prefs.v.todoInNotch = true
         },

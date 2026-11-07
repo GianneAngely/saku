@@ -321,6 +321,11 @@ struct TodoPane: View {
             }
             Section(tr("To-do")) {
                 Toggle(tr("Show tasks due today beside the camera"), isOn: $prefs.v.todoInNotch)
+                Picker(tr("Beside the camera"), selection: $prefs.v.todoInNotchOnHover) {
+                    Text(tr("Only on hover")).tag(true)
+                    Text(tr("Always")).tag(false)
+                }
+                .disabled(!prefs.v.todoInNotch)
                 Toggle(tr("Show completed tasks"), isOn: $prefs.v.todoShowCompleted)
             }
         }

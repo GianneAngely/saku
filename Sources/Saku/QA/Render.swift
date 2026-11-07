@@ -97,6 +97,7 @@ enum Render {
         app.notch.alert = nil
         app.notch.hud = nil
         app.notch.pinned = false
+        app.notch.hovering = false
         app.notch.tab = .home
         app.notch.dropTarget = nil
         app.clock = Self.fixedDate
