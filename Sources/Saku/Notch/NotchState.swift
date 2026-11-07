@@ -162,6 +162,8 @@ final class NotchState {
     /// Card that glows for a moment after jumping there from All features ("battery", "water"...).
     var highlight: String?
     var pinned = false
+    /// The pointer is over the closed notch (its hot zone). Marks that only show on hover read it.
+    var hovering = false
     var geo: NotchGeo = .fallback
     var hidden = false                 // full screen, mirroring or a notchless screen set to "hidden"
     var transparentClosed = false      // notchless screen set to "transparent"

@@ -181,8 +181,10 @@ final class NotchController: NSObject {
         setIgnoresMouse(!inside)
         switch s.mode {
         case .closed:
+            let over = hit(hotZone, p)
+            if s.hovering != over { s.hovering = over }
             guard s.alert == nil else { return }
-            if hit(hotZone, p) { scheduleOpen() } else { cancelOpen() }
+            if over { scheduleOpen() } else { cancelOpen() }
         case .open:
             if inside { openedByKeyboard = false }
             if inside { cancelClose() } else if !keepOpen && !openedByKeyboard { scheduleClose() }
@@ -260,6 +262,7 @@ final class NotchController: NSObject {
         withAnimation(app.notch.reduceMotion ? Theme.fade : Theme.closeSpring) {
             app.notch.mode = .closed
             app.notch.dropTarget = nil
+            app.notch.hovering = hit(hotZone, pointerLocation)
         }
         app.notch.pinned = false
         openedByKeyboard = false

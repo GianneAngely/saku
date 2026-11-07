@@ -337,6 +337,7 @@ final class TodoModel {
 
     func liveActivity() -> LiveActivity? {
         guard app.prefs.v.todoInNotch else { return nil }
+        if app.prefs.v.todoInNotchOnHover, !app.notch.hovering, !app.notch.isOpen { return nil }
         let n = dueToday.count
         return n > 0 ? .todo(count: n) : nil
     }

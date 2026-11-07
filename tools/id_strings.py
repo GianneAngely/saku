@@ -768,6 +768,8 @@ ID = {
 "Show completed": "Tampilkan yang selesai",
 "Show completed tasks": "Tampilkan tugas yang selesai",
 "Show tasks due today beside the camera": "Tampilkan tugas jatuh tempo hari ini di samping kamera",
+"Beside the camera": "Di samping kamera",
+"Only on hover": "Hanya saat kursor di notch",
 "Sign in to Google Tasks": "Masuk ke Google Tasks",
 "Sign in to Google again in Settings › To-do.": "Masuk lagi ke Google di Pengaturan › To-do.",
 "Sign in with Google": "Masuk dengan Google",

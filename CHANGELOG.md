@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.4
+
+- The to-do mark beside the camera stays hidden until you hover the notch, so the closed notch is plain black. Settings › To-do › Beside the camera › Always brings it back for good.
+
 ## 1.2.3
 
 - API keys and the Google sign-in share one keychain item, so after an update macOS asks for keychain access once at most instead of once per key.

@@ -55,6 +55,7 @@ enum LiveTest {
         c.pointerOverride = notchCentre
         c.pointer(at: notchCentre)
         expect(app.notch.mode == .closed, "does not open before the hover delay")
+        expect(app.notch.hovering, "the pointer on the closed notch counts as hovering")
         await wait(app.prefs.v.hoverDelay + 0.2)
         expect(app.notch.mode == .open, "hover opens the notch")
         c.pointer(at: notchCentre)
@@ -73,6 +74,7 @@ enum LiveTest {
         expect(app.notch.mode == .open, "stays open during the close delay")
         await wait(app.prefs.v.closeDelay + 0.25)
         expect(app.notch.mode == .closed, "leaving closes the notch")
+        expect(!app.notch.hovering, "and the closed notch no longer counts as hovering")
 
         // Pinned: stays open.
         c.pointerOverride = notchCentre

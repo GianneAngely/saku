@@ -82,7 +82,7 @@ The To-do tab works on its own as a list on your Mac. To sync it both ways with 
 2. Settings › To-do › **Import client JSON…** (or drop it in `~/Library/Application Support/Saku/google-oauth.json`).
 3. **Sign in with Google**: your browser opens, you allow Saku to manage your tasks, and the tab fills in.
 
-Sign-in uses OAuth 2.0 with PKCE and a one-time listener on 127.0.0.1, and asks only for the Tasks scope. The token is kept in the macOS Keychain. Tasks are cached on the Mac, so the tab opens offline and changes sync when you're back online. Tasks due today show beside the camera.
+Sign-in uses OAuth 2.0 with PKCE and a one-time listener on 127.0.0.1, and asks only for the Tasks scope. The token is kept in the macOS Keychain. Tasks are cached on the Mac, so the tab opens offline and changes sync when you're back online. Tasks due today show beside the camera while you hover the notch, or all the time with Settings › To-do › Beside the camera › Always.
 
 ## Ideas left out, and why
 
